@@ -4,12 +4,23 @@ import threading
 import queue
 import time
 import select
+import sys
+import signal
 
-from src.utils import flush_print_default
+from src.utils import flush_print_default, ctrlc_handler
 
 print = flush_print_default(print)
-HOST = "192.168.0.13"
-PORT =  5555
+
+HOST = ""
+PORT = 5555
+
+if sys.platform == "darwin":
+    HOST = "192.168.0.60"
+    signal.signal(signal.SIGTSTP, ctrlc_handler)  # Detect if  Ctrl+Z was pressed
+
+if sys.platform == "win32":
+    HOST = "192.168.0.13"
+
 
 class Player:
     """Player class"""
@@ -31,15 +42,7 @@ class Player:
         """Get oldest message from queue buffer"""
         if self.queue.empty():
             return None
-        return self.queue.get()
-
-    def shutdown(self):
-        """
-        Shutdown the server with socket.close()
-        Kill threads safely by breaking while loop they are in
-        """
-        self.socket.close()
-        self.connected = False
+        return self.queue.get()      
 
     def send(self):
         """Send message to socket"""
@@ -53,23 +56,25 @@ class Player:
         while self.connected:
             try:
                 readable, _, _ = select.select([self.socket], [], [], 2)
+            except OSError:
+                pass
             except ValueError:
                 pass
             for obj in readable:
                 if obj is self.socket:
                     if self.socket.fileno() == -1:
-                        # If we close the socket
+                        
                         print("\n------------- \nClosing socket...")
                         break
 
                     data = self.socket.recv(1024)
-
                     if not data:
                         print("\n------------- \nMax connections or Server shutdown - Closing socket...")
-                        self.shutdown()
+                        self.connected = False
                         break
 
                     print(f"Received {data}")
+
 
     def start(self):
         """Start the server"""
@@ -88,7 +93,7 @@ class Player:
                 message = input("Enter: ")
                 self.add_message_buffer(message=message)
             except KeyboardInterrupt:
-                self.shutdown()
+                self.connected = False
                 break
 
 
