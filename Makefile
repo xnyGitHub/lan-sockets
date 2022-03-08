@@ -5,5 +5,6 @@ else
 endif
 
 lint:
+	pylint src --max-line-length 120
 	black src --line-length 120
 	flake8 src --max-line-length 120
