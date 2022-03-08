@@ -12,6 +12,34 @@ print = flush_print_default(print)
 HOST = ""
 PORT = 5555
 
+
+class ThreadedClient(threading.Thread):
+    """Threadclient class for each client that connects"""
+    def __init__(self, client):
+        threading.Thread.__init__(
+            self,
+        )
+        self.event = threading.Event()
+        self.client = client
+
+    def run(self):
+        print(f"{self.client.getsockname()[0]} has connected")
+        while not self.event.is_set():
+            readable, _, _ = select.select([self.client], [], [], 2)
+            for obj in readable:
+                if obj is self.client:
+                    data = self.client.recv(1024)
+                    if not data:
+                        print(f"{self.client.getsockname()[0]} has disconnected")
+                        self.client.close()
+                        self.event.set()
+                        break
+                    print(f"Received message from {data.decode()}")
+    
+    def set_event(self):
+        self.event.set()
+
+
 class Socket:
     """Server class"""
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -20,36 +48,18 @@ class Socket:
         print("Initialising server...")
         self.sock.bind((host, port))
         self.sock.listen(2)
+        self.running_threads = []
         self.connections = 0
-        self.running = False
-
-    def threaded_client(self, client):
-        """Create a threaded client"""
-        self.connections += 1
-        print(f"{client.getsockname()} has connected")
-
-        while self.running:
-            readable, _, _ = select.select([client], [], [], 2)
-            for obj in readable:
-                if obj is client:
-                    data = client.recv(1024)
-                    if not data:
-                        print(f"{client.getsockname()} has disconnected")
-                        self.connections -= 1
-                        client.close()
-                        self.shutdown()
-                        break
-                    print(f"Received message from {data.decode()}")
-
-    def shutdown(self):
-        """Shut down the server"""
-        self.running = False
-
+    
+    def check_running_threads(self):
+        """Check number of threaded clients"""
+        self.connections =  threading.active_count() - 1
+            
     def run(self):
         """Entry to point to start server"""
         print("Server is running!")
-        self.running = True
         while True:
+            self.check_running_threads()
             try:  # So we can KeyBoard Interrupt
                 readable, _, _ = select.select([self.sock], [], [], 2)
                 for obj in readable:
@@ -60,11 +70,14 @@ class Socket:
                             continue
 
                         # Start a new client thread
-                        new_client = threading.Thread(target=self.threaded_client, args=(client,))
+                        new_client = ThreadedClient(client)
                         new_client.start()
+                        self.running_threads.append(new_client)
 
             except KeyboardInterrupt:
-                self.shutdown()
+                for thr in self.running_threads:
+                    thr.set_event()
+                self.sock.close()
                 break
         print("Shutting down server")
 
@@ -75,7 +88,7 @@ if __name__ == "__main__":
         HOST = "192.168.0.60"
         signal.signal(signal.SIGTSTP, ctrlc_handler)  # Detect if  Ctrl+Z was pressed
 
-    if sys.platform ==   "win32":
+    if sys.platform == "win32":
         HOST = "192.168.0.13"
     new_server = Socket(HOST, PORT)
     new_server.run()
