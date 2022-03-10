@@ -6,7 +6,7 @@ import time
 import select
 import sys
 import signal
-import win32api
+
 
 from src.utils import flush_print_default, ctrlc_handler
 
@@ -20,6 +20,7 @@ if sys.platform == "darwin":
     signal.signal(signal.SIGTSTP, ctrlc_handler)  # Detect if  Ctrl+Z was pressed
 
 if sys.platform == "win32":
+    import win32api
     HOST = "192.168.0.13"
 
 
