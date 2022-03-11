@@ -8,6 +8,9 @@ lint:
 	black src --line-length 120
 	pylint src --max-line-length 120
 
-run:
+server:
 	$(PYTHON) -m src.server
+
+player:
+	$(PYTHON) -m src.player
 
