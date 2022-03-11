@@ -1,14 +1,17 @@
 """Player module"""
-import socket
-import threading
 import queue
-import time
 import select
-import sys
 import signal
+import socket
+import sys
+import threading
+import time
 
-
-from src.utils import flush_print_default, ctrlc_handler
+from src.chess.engine.controller import Controller
+from src.chess.engine.event import EventManager
+from src.chess.engine.game import GameEngine
+from src.chess.engine.view import View
+from src.utils import ctrlc_handler, flush_print_default
 
 print = flush_print_default(print)
 
@@ -32,6 +35,11 @@ class Player:
         self.queue = queue.Queue(maxsize=2)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.player_id = self.connect(HOST, PORT)
+        self.event_manager = EventManager()
+        self.gamemodel = GameEngine(self.event_manager)
+        self.controller = Controller(self.event_manager, self.gamemodel)
+        self.graphics = View(self.event_manager, self.gamemodel)
+
 
     def connect(self, host, port):
         """Connect to socket"""
@@ -95,7 +103,8 @@ class Player:
             input_thread.start()
             try:
                 while self.connected:
-                    pass
+                    pygame_thread = threading.Thread(target=self.gamemodel.run)
+                    pygame_thread.run()
             except KeyboardInterrupt:
 
                 self.connected = False
