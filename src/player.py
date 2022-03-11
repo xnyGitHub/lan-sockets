@@ -101,18 +101,18 @@ class Player:
             print("Connected")
             input_thread = threading.Thread(target=self.user_input, daemon=True)
             input_thread.start()
-            try:
-                while self.connected:
-                    pygame_thread = threading.Thread(target=self.gamemodel.run)
-                    pygame_thread.run()
-            except KeyboardInterrupt:
 
+            try:
+                self.gamemodel.run()
+                self.connected = False
+                print("Shutting down client...")
+            except KeyboardInterrupt:
                 self.connected = False
                 print("Shutting down client...")
         else:
             print("Could not connect")
 
-        time.sleep(1)
+        time.sleep(3)
         self.socket.close()
         # if sys.platform == "win32":
         #     win32api.TerminateProcess(-1, 0)
