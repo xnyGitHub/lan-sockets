@@ -15,37 +15,33 @@ from src.utils import ctrlc_handler, flush_print_default
 
 print = flush_print_default(print)
 
-HOST = ""
-PORT = 5555
-
-if sys.platform == "darwin":
-    HOST = "192.168.0.60"
-    signal.signal(signal.SIGTSTP, ctrlc_handler)  # Detect if  Ctrl+Z was pressed
-
-if sys.platform == "win32":
-    import win32api
-    HOST = "192.168.0.13"
-
 
 class Player:
     """Player class"""
 
-    def __init__(self):
+    def __init__(self, HOST, PORT):
         self.connected = False
         self.queue = queue.Queue(maxsize=2)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.player_id = self.connect(HOST, PORT)
         self.event_manager = EventManager()
-        self.gamemodel = GameEngine(self.event_manager)
-        self.controller = Controller(self.event_manager, self.gamemodel)
-        self.graphics = View(self.event_manager, self.gamemodel)
-
+        self.initialise_pygame()
 
     def connect(self, host, port):
         """Connect to socket"""
-        self.socket.connect((host, port))
+        try:
+            self.socket.connect((host, port))
+        except ConnectionRefusedError:
+            print("Could not connect")
+            sys.exit(0)
         self.connected = True
         return self.socket.recv(1024).decode()
+
+    def initialise_pygame(self):
+        self.event_manager = EventManager()
+        self.gamemodel = GameEngine(self.event_manager)
+        self.controller = Controller(self.event_manager, self.gamemodel)
+        self.graphics = View(self.event_manager, self.gamemodel)
 
     def add_message_buffer(self, message):
         """Add message to queue buffer"""
@@ -61,8 +57,11 @@ class Player:
         """Send message to socket"""
         while self.connected:
             if message := self.get_message_buffer():
-                byte_string = str.encode(f"{self.player_id}:{message}")
-                self.socket.sendall(byte_string)
+                self.socket.sendall(str.encode(f"{self.player_id}:{message}"))
+
+    def sleep(self, sec):
+        """Zzz"""
+        time.sleep(sec)
 
     def recieve(self):
         """Socket listener function"""
@@ -76,17 +75,13 @@ class Player:
 
                     data = self.socket.recv(1024)
                     if not data:
-                        print("\n------------- \nMax connections or Server shutdown - Closing socket...")
+                        print(
+                            "\n------------- \nMax connections or Server shutdown - Closing socket..."
+                        )
                         self.connected = False
                         break
 
                     print(f"Received {data}")
-
-    def user_input(self):
-        """User input thread"""
-        while self.connected:
-            message = input("")
-            self.add_message_buffer(message=message)
 
     def start(self):
         """Start the server"""
@@ -95,30 +90,33 @@ class Player:
         threading.Thread(target=self.send).start()
         threading.Thread(target=self.recieve).start()
 
-        time.sleep(2)
+        self.sleep(1)
+        if not self.connected:
+            return
+        print("Connected!")
 
-        if self.connected:
-            print("Connected")
-            input_thread = threading.Thread(target=self.user_input, daemon=True)
-            input_thread.start()
+        try:
+            self.gamemodel.run()
+        except KeyboardInterrupt:
+            pass
 
-            try:
-                self.gamemodel.run()
-                self.connected = False
-                print("Shutting down client...")
-            except KeyboardInterrupt:
-                self.connected = False
-                print("Shutting down client...")
-        else:
-            print("Could not connect")
-
-        time.sleep(3)
+        print("Shutting down client...")
+        self.connected = False
+        self.sleep(2.5)  # Let threads finish before closing socket
         self.socket.close()
-        # if sys.platform == "win32":
-        #     win32api.TerminateProcess(-1, 0)
-        sys.exit(0)
+        print("Disconnected!")
 
 
 if __name__ == "__main__":
-    player = Player()
+    HOST = ""
+    PORT = 5555
+
+    if sys.platform == "darwin":
+        HOST = "192.168.0.60"
+        signal.signal(signal.SIGTSTP, ctrlc_handler)  # Detect if  Ctrl+Z was pressed
+
+    if sys.platform == "win32":
+        HOST = "192.168.0.13"
+
+    player = Player(HOST, PORT)
     player.start()
