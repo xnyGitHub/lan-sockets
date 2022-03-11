@@ -1,5 +1,8 @@
 from src.chess.engine.event import EventManager, QuitEvent, TickEvent, UpdateEvent
 from src.chess.engine.game import GameEngine
+from src.utils import flush_print_default
+
+print = flush_print_default(print)
 import pygame
 
 class View:
@@ -17,7 +20,7 @@ class View:
         self.event_manager.register_listener(self)
         self.screen: pygame.Surface = None
         self.images: dict = {}
-        self.initialise()
+        self.initialised = self.initialise()
 
     def notify(self, event):
         """Notify"""
@@ -29,6 +32,9 @@ class View:
 
     def render(self):
         """Render"""
+
+        if not self.initialised:
+            return
         self.draw_board()
         pygame.display.flip()
 
@@ -65,3 +71,4 @@ class View:
         pygame.display.set_caption("Chess Engine")
         self.screen: pygame.Surface = pygame.display.set_mode((512, 512))
         self.load_images()
+        return True
