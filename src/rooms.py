@@ -8,15 +8,23 @@ class Room:
         self.game_rooms = {}
 
     def create_room(self, room_name):
-        if room_name not in self.game_rooms:
-            self.game_rooms[room_name] = GameEngine()
-            return self.game_rooms[room_name]
-        raise RoomNameExists()
+        if room_name in self.game_rooms:
+            raise RoomNameAlreadyTaken()
+        self.game_rooms[room_name] = Rooms(room_name)
 
-    def get_room(self, room_id):
-        if room_id in self.game_rooms:
-            return self.game_rooms[room_id]
-        raise RoomNotFound()
+    def join(self,room_name):
+        if room_name not in self.game_rooms:
+            raise RoomNotFound()
+
+        if self.game_rooms[room_name].is_full():
+            raise RoomFull()
+
+        return self.game_rooms[room_name]
+
+    def get_all_rooms(self):
+        if not self.game_rooms:
+            return "No Room created"
+        return list(self.game_rooms.keys())
 
     def del_room(self, room_id):
         del self.game_rooms[room_id]
@@ -64,5 +72,5 @@ class RoomNotFound(Exception):
     pass
 
 
-class RoomNameExists(Exception):
+class RoomNameAlreadyTaken(Exception):
     pass

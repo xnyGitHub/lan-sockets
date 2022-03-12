@@ -8,6 +8,7 @@ import threading
 
 from src.utils import ctrlc_handler, flush_print_default
 from src.client import ThreadedClient
+from src.rooms import Room
 
 print = flush_print_default(print)
 
@@ -23,6 +24,8 @@ class Socket:
         self.sock.listen(2)
         self.running_threads = []
         self.connections = 0
+        self.server_rooms = Room.instance()
+
 
     def check_running_threads(self):
         """Check number of threaded clients"""
@@ -43,7 +46,7 @@ class Socket:
                             continue
 
                         # Start a new client thread
-                        new_client = ThreadedClient(client)
+                        new_client = ThreadedClient(client,self.server_rooms)
                         new_client.start()
                         self.running_threads.append(new_client)
 

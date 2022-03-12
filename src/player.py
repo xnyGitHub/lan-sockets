@@ -6,6 +6,7 @@ import socket
 import sys
 import threading
 import time
+import json
 
 from src.chess.engine.controller import Controller
 from src.chess.engine.event import EventManager
@@ -21,11 +22,11 @@ class Player:
 
     def __init__(self, HOST, PORT):
         self.connected = False
-        self.queue = queue.Queue(maxsize=2)
+        self.queue = queue.Queue(maxsize=10)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.player_id = self.connect(HOST, PORT)
         self.event_manager = EventManager()
-        self.initialise_pygame()
+        # self.initialise_pygame()
 
     def connect(self, host, port):
         """Connect to socket"""
@@ -57,7 +58,8 @@ class Player:
         """Send message to socket"""
         while self.connected:
             if message := self.get_message_buffer():
-                self.socket.sendall(str.encode(f"{self.player_id}:{message}"))
+                self.socket.sendall(message.encode())
+                self.sleep(0.25) # So the player doesn't send info too fast
 
     def sleep(self, sec):
         """Zzz"""
@@ -83,6 +85,18 @@ class Player:
 
                     print(f"Received {data}")
 
+    def create_room(self,room_name):
+        message = json.dumps({"action": "create", "payload": room_name})
+        self.add_message_buffer(message)
+
+    def join_room(self,room_name):
+        message = json.dumps({"action": "join", "payload": room_name})
+        self.add_message_buffer(message)
+
+    def get_rooms(self):
+        message = json.dumps({"action": "get_rooms"})
+        self.add_message_buffer(message)
+
     def start(self):
         """Start the server"""
         print("Connecting to server...")
@@ -95,8 +109,16 @@ class Player:
             return
         print("Connected!")
 
+        self.get_rooms()
+        self.create_room("Room1")
+        self.get_rooms()
+        self.join_room("Room")
+        self.join_room("Room1")
+
         try:
-            self.gamemodel.run()
+            while True:
+                pass
+            # self.gamemodel.run()
         except KeyboardInterrupt:
             pass
 
