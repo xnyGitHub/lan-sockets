@@ -1,6 +1,7 @@
 from src.game import GameEngine
 from src.utils import Singleton
-
+import socket
+import json
 # ---------------------------------------------
 @Singleton
 class Room:
@@ -40,6 +41,10 @@ class Room:
 class Rooms:
 
     CAPACITY = 2
+    clients:dict= {
+        "1": None,
+        "2": None,
+    }
 
     def __init__(self, room_name):
         self.room_name = room_name
@@ -47,11 +52,21 @@ class Rooms:
         self.players = []
         self.spectators = []
 
-    def join(self, player):
+    def join(self, player: socket.socket):
+        message = ''
         if self.is_full():
             raise RoomFull()
         self.players.append(player)
 
+
+        if Rooms.clients.get("1") is None:
+            Rooms.clients['1'] = player
+            message = json.dumps({"action": "id", "payload": '1'})
+        else:
+            Rooms.clients['2'] = player
+            message = json.dumps({"action": "id", "payload": '2'})
+
+        player.send((message+ '\0').encode())
 
     def spectate(self, player):
         self.spectators.append(player)
