@@ -20,11 +20,11 @@ class Room:
             raise RoomFull()
 
         return self.game_rooms[room_name]
-    
+
     def spectate(self,room_name):
         if room_name not in self.game_rooms:
             raise RoomNotFound()
-        
+
         return self.game_rooms[room_name]
 
     def get_all_rooms(self):
@@ -48,9 +48,10 @@ class Rooms:
         self.spectators = []
 
     def join(self, player):
-        if not self.is_full():
-            self.players.append(player)
-        raise RoomFull()
+        if self.is_full():
+            raise RoomFull()
+        self.players.append(player)
+
 
     def spectate(self, player):
         self.spectators.append(player)
@@ -62,8 +63,8 @@ class Rooms:
         if player in self.spectators:
             self.spectators.remove(player)
 
-    def reset_game(self):
-        self.game.reset
+    def service_data(self, data:dict):
+        pass
 
     def is_full(self):
         if len(self.players) == Rooms.CAPACITY:
