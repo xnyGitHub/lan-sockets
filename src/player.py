@@ -24,7 +24,7 @@ class Player:
         self.connected = False
         self.queue = queue.Queue(maxsize=10)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.player_id = self.connect(HOST, PORT)
+        self.connect(HOST, PORT)
         self.event_manager = EventManager()
         # self.initialise_pygame()
 
@@ -36,7 +36,6 @@ class Player:
             print("Could not connect")
             sys.exit(0)
         self.connected = True
-        return self.socket.recv(1024).decode()
 
     def initialise_pygame(self):
         self.event_manager = EventManager()
@@ -58,8 +57,8 @@ class Player:
         """Send message to socket"""
         while self.connected:
             if message := self.get_message_buffer():
-                self.socket.sendall(message.encode())
-                self.sleep(0.25) # So the player doesn't send info too fast
+                self.socket.sendall((message+ '\0').encode())
+                # self.sleep(0.25) # So the player doesn't send info too fast
 
     def sleep(self, sec):
         """Zzz"""
@@ -74,16 +73,18 @@ class Player:
                 pass
             for obj in readable:
                 if obj is self.socket:
-
+                    message = ''
                     data = self.socket.recv(1024)
                     if not data:
-                        print(
-                            "\n------------- \nMax connections or Server shutdown - Closing socket..."
-                        )
+                        print("\n------------- \nMax connections or Server shutdown - Closing socket...")
                         self.connected = False
                         break
 
-                    print(f"Received {data}")
+                    strings = data.split(b'\0')
+                    for msg in strings:
+                        if msg != b'':
+                            message = json.loads(msg)
+                            print(f"Received {message}")
 
     def create_room(self,room_name):
         message = json.dumps({"action": "create", "payload": room_name})

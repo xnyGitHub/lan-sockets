@@ -9,24 +9,15 @@ from src.rooms import Room, RoomFull, RoomNameAlreadyTaken, RoomNotFound, Rooms
 class ThreadedClient(threading.Thread):
     """Threadclient class for each client that connects"""
 
-    clients:dict= {
-        "1": None,
-        "2": None,
-    }
-
     def __init__(self, client, room):
         threading.Thread.__init__(self)
         self.event: threading.Event = threading.Event()
         self.client: socket.socket = client
-        self.client_id: str = self.get_id()
         self.server_room: Room = room
         self.game_room: Rooms = None
 
-        self.client.send(str.encode(self.client_id))
-        ThreadedClient.clients[self.client_id] = self.client
-
     def run(self):
-        print(f"{self.client_id}:{self.client.getsockname()[0]} has connected")
+        print(f"{self.client.getsockname()[0]} has connected")
         while not self.event.is_set():
             readable, _, _ = select.select([self.client], [], [], 2) # Type list, list, list
             for obj in readable:
@@ -37,13 +28,14 @@ class ThreadedClient(threading.Thread):
                         break
 
                     try:
-                        data = json.loads(data)
-                        self.service_data(data)
+                        strings = data.split(b'\0')
+                        for msg in strings:
+                            if msg != b'':
+                                message= json.loads(msg)
+                                self.service_data(message)
                     except Exception as e:
                         raise(e)
-
         print(f"{self.client.getsockname()[0]} has disconnected")
-        ThreadedClient.clients[self.client_id] = None
 
     def service_data(self, data: dict):
 
@@ -92,13 +84,7 @@ class ThreadedClient(threading.Thread):
         if data['action'] == 'game':
             self.game_room.service_data(data)
 
-        self.client.send(json.dumps(message).encode())
-
-    def get_id(self):
-        """Return an ID for the client"""
-        if ThreadedClient.clients.get("1") is None:
-            return "1"
-        return "2"
+        self.client.send((json.dumps(message)+ '\0').encode())
 
     def set_event(self):
         """Stop the thread"""
