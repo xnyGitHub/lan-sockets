@@ -1,4 +1,3 @@
-from re import L
 import threading
 import select
 import json
@@ -47,7 +46,7 @@ class ThreadedClient(threading.Thread):
     def service_data(self, data):
 
         message = {}
-
+        
         if data['action'] == 'create':
             payload = data['payload']
             try:
@@ -60,15 +59,33 @@ class ThreadedClient(threading.Thread):
             payload = data['payload']
             try:
                 self.game_room = self.server_room.join(payload)
+                self.game_room.join(self.client)
                 message['message']= f'Joined {payload}'
             except RoomNotFound:
                 message['message']= 'Error: Room not found'
             except RoomFull:
                 message['message']= 'Error: Room is full'
 
+        if data['action'] == 'spectate':
+            payload = data['payload']
+            try:
+                self.game_room = self.server_room.spectate(payload)
+                self.game_room.spectate(self.client)
+                message['message']= f'Spectating {payload}'
+            except RoomNotFound:
+                message['message']= 'Error: Room not found'
+
         if data['action'] == 'get_rooms':
             message['message'] = self.server_room.get_all_rooms()
             print(message['message'])
+        
+        if data['action'] == 'leave_room':
+            if self.game_room is None:
+                message['message'] = f"You aren't in a room"
+            else:
+                self.game_room.leave(self.client)
+                self.game_room = None
+                message['message'] = f'You left the room'
 
         self.client.send(json.dumps(message).encode())
 

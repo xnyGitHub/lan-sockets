@@ -20,6 +20,12 @@ class Room:
             raise RoomFull()
 
         return self.game_rooms[room_name]
+    
+    def spectate(self,room_name):
+        if room_name not in self.game_rooms:
+            raise RoomNotFound()
+        
+        return self.game_rooms[room_name]
 
     def get_all_rooms(self):
         if not self.game_rooms:
