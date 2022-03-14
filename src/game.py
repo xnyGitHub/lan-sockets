@@ -32,15 +32,15 @@ class GameEngine:
         self.generate_all_moves()
 
     def make_move(self, move):
-        
+
         start_cords, end_cords = move.split(':')
         start_col, start_row = [int(x) for x in start_cords]
         end_col, end_row = [int(x) for x in end_cords]
-        
+
         self.board[end_row][end_col] = self.board[start_row][start_col]
         self.board[start_row][start_col] = "--"
         self.player_turn = not self.player_turn
-        
+
         move_data = f'{start_cords}:{end_cords}:{self.board[start_row][start_col]}:{self.board[end_row][end_col]}'
         self.move_log.append(move_data)
         self.generate_all_moves()
@@ -54,8 +54,20 @@ class GameEngine:
         self.board[end_row][end_col] = piece_captured
 
         self.player_turn = not self.player_turn
-        self.move_log.pop() 
-    
+        self.move_log.pop()
+        self.generate_all_moves()
+
+    def get_white_moves(self):
+        return self.white_moves
+
+    def get_black_moves(self):
+        return self.black_moves
+
+    def get_board(self):
+        return self.board
+
+    def get_move_log(self):
+        return self.move_log
 
     def piece_movemovents(self):
         """Piece movements helper function"""
@@ -109,17 +121,7 @@ class GameEngine:
                 else:
                     self.get_non_pawn_moves(index, array, chess_square)
 
-    def get_white_moves(self):
-        return self.white_moves
 
-    def get_black_moves(self):
-        return self.black_moves
-
-    def get_board(self):
-        return self.board
-
-    def get_move_log(self):
-        return self.move_log
 
     def get_non_pawn_moves(self, index: Tuple[int,int], array: List[Dict[list,bool]], chess_square: str) -> None:
         """Generate non-pawn moves here"""
