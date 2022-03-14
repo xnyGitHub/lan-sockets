@@ -26,6 +26,7 @@ class Player:
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connect(HOST, PORT)
         self.event_manager = EventManager()
+        self.game_id = None
         # self.initialise_pygame()
 
     def connect(self, host, port):
@@ -74,9 +75,9 @@ class Player:
             for obj in readable:
                 if obj is self.socket:
                     message = ''
-                    data = self.socket.recv(1024)
+                    data = self.socket.recv(4096)
                     if not data:
-                        print("\n------------- \nMax connections or Server shutdown - Closing socket...")
+                        print("\n------------- \nMax connections or Server shutdown")
                         self.connected = False
                         break
 
@@ -84,7 +85,8 @@ class Player:
                     for msg in strings:
                         if msg != b'':
                             message = json.loads(msg)
-                            print(f"Received {message}")
+                            self.service_data(message)
+                            # print(f"Received {message}")
 
     def create_room(self,room_name):
         message = json.dumps({"action": "create", "payload": room_name})
@@ -97,6 +99,21 @@ class Player:
     def get_rooms(self):
         message = json.dumps({"action": "get_rooms"})
         self.add_message_buffer(message)
+
+    def service_data(self,data):
+        if data['action'] == 'id':
+            self.game_id = data['payload']
+            print(f"Assigned id: {self.game_id}")
+
+        if data['action'] == 'game':
+            payload = data['payload']
+            board = payload['board']
+            moves = payload['moves']
+            print(board)
+            print(moves)
+
+        if data['action'] == 'message':
+            print(data['payload'])
 
     def start(self):
         """Start the server"""

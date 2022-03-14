@@ -40,17 +40,20 @@ class Room:
 
 class Rooms:
 
-    CAPACITY = 2
-    clients:dict= {
-        "1": None,
-        "2": None,
-    }
+    MAX_SPECTATORS: int = 2
 
-    def __init__(self, room_name):
-        self.room_name = room_name
-        self.game = GameEngine()
-        self.players = []
-        self.spectators = []
+
+    def __init__(self, room_name: str, max_spectator:int = None):
+        self.room_name:str = room_name
+        self.clients:dict = {"white": None,
+                            "black": None}
+        self.game = None
+        self.players:list = []
+        self.spectators:list = []
+        self.player_turn: str = "white"
+
+        if max_spectator is not None:
+            self.MAX_SPECTATORS = max_spectator
 
     def join(self, player: socket.socket):
         message = ''
@@ -58,15 +61,34 @@ class Rooms:
             raise RoomFull()
         self.players.append(player)
 
-
-        if Rooms.clients.get("1") is None:
-            Rooms.clients['1'] = player
-            message = json.dumps({"action": "id", "payload": '1'})
+        if self.clients.get("white") is None:
+            self.clients['white'] = player
+            message = json.dumps({"action": "id", "payload": 'white'})
         else:
-            Rooms.clients['2'] = player
-            message = json.dumps({"action": "id", "payload": '2'})
+            self.clients['black'] = player
+            message = json.dumps({"action": "id", "payload": 'black'})
 
         player.send((message+ '\0').encode())
+
+
+        if self.is_full():
+            self.game = GameEngine()
+            self.send_players_gamestate()
+
+    def send_players_gamestate(self):
+        message = {"action": "game",
+                    "payload": {"board": self.game.get_board().tolist(),
+                                "moves": '',
+                                "move_log": self.game.get_move_log()}
+                    }
+        for color, socket in self.clients.items():
+            if color == "black":
+                message['payload']['moves'] = self.game.get_black_moves()
+            if color == "white":
+                message['payload']['moves'] = self.game.get_white_moves()
+
+            dumped = json.dumps(message)
+            socket.send((dumped + '\0').encode())
 
     def spectate(self, player):
         self.spectators.append(player)
@@ -78,11 +100,11 @@ class Rooms:
         if player in self.spectators:
             self.spectators.remove(player)
 
-    def service_data(self, data:dict):
+    def service_data(self, data: dict):
         pass
 
     def is_full(self):
-        if len(self.players) == Rooms.CAPACITY:
+        if len(self.players) == 2:
             return True
         return False
 

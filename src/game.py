@@ -106,6 +106,12 @@ class GameEngine:
     def get_black_moves(self):
         return self.black_moves
 
+    def get_board(self):
+        return self.board
+
+    def get_move_log(self):
+        return self.move_log
+
     def get_non_pawn_moves(self, index: Tuple[int,int], array: List[Dict[list,bool]], chess_square: str) -> None:
         """Generate non-pawn moves here"""
         # ---------------
@@ -144,7 +150,7 @@ class GameEngine:
 
         # Check if its inbounds
         if self.is_in_bounds(row + direction, col):
-            
+
             # One square move
             if self.board[row + direction][col] == "--":  # If empty
                 array.append((f"{col}{row}",f"{col}{row + direction}"))
@@ -152,7 +158,7 @@ class GameEngine:
                 # Two square move
                 if (not self.has_pawn_moved(row, piece_color) and self.board[row + (direction * 2)][col] == "--"):
                     array.append((f"{col}{row}",f"{col}{row+(direction*2)}"))
-                    
+
             # Captures
             for add_y in movements:
                 if 0 <= (col + add_y) <= 7:

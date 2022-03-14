@@ -22,7 +22,7 @@ class ThreadedClient(threading.Thread):
             readable, _, _ = select.select([self.client], [], [], 2) # Type list, list, list
             for obj in readable:
                 if obj is self.client:
-                    data = self.client.recv(1024)
+                    data = self.client.recv(4096)
                     if not data:
                         self.set_event()
                         break
@@ -39,47 +39,46 @@ class ThreadedClient(threading.Thread):
 
     def service_data(self, data: dict):
 
-        message: dict = {}
+        message: dict = {"action": "message", "payload": ""}
 
         if data['action'] == 'create':
             payload = data['payload']
             try:
                 self.server_room.create_room(payload)
-                message['message']= f'{payload} created'
+                message['payload']= f'{payload} created'
             except RoomNameAlreadyTaken:
-                message['message'] = 'Error: Room name is already taken'
+                message['payload'] = 'Error: Room name is already taken'
 
         if data['action'] == 'join':
             payload = data['payload']
             try:
                 self.game_room = self.server_room.join(payload)
                 self.game_room.join(self.client)
-                message['message']= f'Joined {payload}'
+                message['payload']= f'Joined {payload}'
             except RoomNotFound:
-                message['message']= 'Error: Room not found'
+                message['payload']= 'Error: Room not found'
             except RoomFull:
-                message['message']= 'Error: Room is full'
+                message['payload']= 'Error: Room is full'
 
         if data['action'] == 'spectate':
             payload = data['payload']
             try:
                 self.game_room = self.server_room.spectate(payload)
                 self.game_room.spectate(self.client)
-                message['message']= f'Spectating {payload}'
+                message['payload']= f'Spectating {payload}'
             except RoomNotFound:
-                message['message']= 'Error: Room not found'
+                message['payload']= 'Error: Room not found'
 
         if data['action'] == 'get_rooms':
-            message['message'] = self.server_room.get_all_rooms()
-            print(message['message'])
+            message['payload'] = self.server_room.get_all_rooms()
 
         if data['action'] == 'leave_room':
             if self.game_room is None:
-                message['message'] = f"You aren't in a room"
+                message['payload'] = f"You aren't in a room"
             else:
                 self.game_room.leave(self.client)
                 self.game_room = None
-                message['message'] = f'You left the room'
+                message['payload'] = f'You left the room'
 
         if data['action'] == 'game':
             self.game_room.service_data(data)
