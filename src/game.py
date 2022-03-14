@@ -8,7 +8,6 @@ class GameEngine:
     def __init__(self):
         """Create new gamestate"""
 
-        self.running: bool = False
         self.player_turn = True
 
         self.move_log = []
@@ -33,20 +32,30 @@ class GameEngine:
         self.generate_all_moves()
 
     def make_move(self, move):
-        self.board[move.end_row][move.end_col] = self.board[move.start_row][move.start_col]
-        self.board[move.start_row][move.start_col] = "--"
-
+        
+        start_cords, end_cords = move.split(':')
+        start_col, start_row = [int(x) for x in start_cords]
+        end_col, end_row = [int(x) for x in end_cords]
+        
+        self.board[end_row][end_col] = self.board[start_row][start_col]
+        self.board[start_row][start_col] = "--"
         self.player_turn = not self.player_turn
-        self.move_log.append(move)
+        
+        move_data = f'{start_cords}:{end_cords}:{self.board[start_row][start_col]}:{self.board[end_row][end_col]}'
+        self.move_log.append(move_data)
         self.generate_all_moves()
 
-    def undoMove(self):
+    def undo_move(self):
         move = self.move_log[-1]
-        self.board[move.start_row][move.start_col] = move.piece_moved
-        self.board[move.end_row][move.end_col] = move.piece_captured
+        start_cords, end_cords, piece_captured, piece_moved = move.split(':')
+        start_col, start_row = [int(x) for x in start_cords]
+        end_col, end_row = [int(x) for x in end_cords]
+        self.board[start_row][start_col] = piece_moved
+        self.board[end_row][end_col] = piece_captured
 
         self.player_turn = not self.player_turn
-        self.moveLog.pop()
+        self.move_log.pop() 
+    
 
     def piece_movemovents(self):
         """Piece movements helper function"""
@@ -126,7 +135,7 @@ class GameEngine:
             while self.is_in_bounds(new_row, new_col):  #
                 # Check if the square is empty
                 if self.board[new_row][new_col] == "--":
-                    array.append((f"{col}{row}",f"{new_col}{new_row}"))
+                    array.append(f"{col}{row}:{new_col}{new_row}")
                     if not is_continious:
                         break
                     new_row += add_x
@@ -136,7 +145,7 @@ class GameEngine:
                     if self.board[new_row][new_col][0] == piece_color:
                         break
                     # Collides with enemy piece
-                    array.append((f"{col}{row}",f"{new_col}{new_row}"))
+                    array.append(f"{col}{row}:{new_col}{new_row}")
                     break
 
     def get_pawn_moves(self, index: Tuple[int,int], array: List[Dict[list,bool]], chess_square: str) -> None:
@@ -153,15 +162,15 @@ class GameEngine:
 
             # One square move
             if self.board[row + direction][col] == "--":  # If empty
-                array.append((f"{col}{row}",f"{col}{row + direction}"))
+                array.append(f"{col}{row}:{col}{row + direction}")
 
                 # Two square move
                 if (not self.has_pawn_moved(row, piece_color) and self.board[row + (direction * 2)][col] == "--"):
-                    array.append((f"{col}{row}",f"{col}{row+(direction*2)}"))
+                    array.append(f"{col}{row}:{col}{row+(direction*2)}")
 
             # Captures
             for add_y in movements:
                 if 0 <= (col + add_y) <= 7:
                     if self.board[row + direction][col + add_y][0] != "-":
                         if (self.board[row + direction][col + add_y][0] != piece_color):  # Move up left check
-                            array.append((f"{col}{row}",f"{col+ add_y}{row+direction}"))
+                            array.append(f"{col}{row}:{col+ add_y}{row+direction}")
