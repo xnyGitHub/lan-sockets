@@ -1,7 +1,11 @@
-import pygame
+import os
 
-from src.chess.engine.event import EventManager, QuitEvent, TickEvent, UpdateEvent, Event
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
+import pygame
+from src.chess.engine.event import (Event, EventManager, QuitEvent, TickEvent)
 from src.chess.engine.game import GameEngine
+
+
 class Controller:
 
     def __init__(self, ev_manager: EventManager, model: GameEngine):

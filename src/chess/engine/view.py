@@ -1,9 +1,14 @@
-from src.chess.engine.event import EventManager, QuitEvent, TickEvent, UpdateEvent
+from src.chess.engine.event import (EventManager, QuitEvent, TickEvent,
+                                    UpdateEvent)
 from src.chess.engine.game import GameEngine
 from src.utils import flush_print_default
 
 print = flush_print_default(print)
+import os
+
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
+
 
 class View:
 
