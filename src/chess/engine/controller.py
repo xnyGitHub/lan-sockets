@@ -2,7 +2,7 @@ import os
 import json
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
-from src.chess.engine.event import (Event, EventManager, QuitEvent, TickEvent)
+from src.chess.engine.event import (Event, EventManager, QuitEvent, TickEvent, Highlight)
 from src.chess.engine.game import GameEngine
 
 
@@ -37,6 +37,7 @@ class Controller:
 
                     self.square_selected = (col,row)
                     self.player_clicks.append(self.square_selected)
+                    self.ev_manager.post(Highlight((col,row)))
 
                     if len(self.player_clicks) == 2:
                         (sc, sr),(ec, er) = self.player_clicks
@@ -48,3 +49,5 @@ class Controller:
     def reset_click(self):
         self.square_selected: tuple = ()
         self.player_clicks: list = []
+        self.ev_manager.post(Highlight((None,None)))
+

@@ -11,9 +11,13 @@ class UpdateEvent(Event):
         self.moves = moves
         self.log = log
 
+class Highlight(Event):
+    def __init__(self,square):
+        self.square = square
 
 class QuitEvent(Event):
     pass
+
 
 class EventManager:
     """The Coordinator"""

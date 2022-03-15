@@ -1,5 +1,5 @@
 from src.chess.engine.event import (EventManager, QuitEvent, TickEvent,
-                                    UpdateEvent)
+                                    Highlight)
 from src.chess.engine.game import GameEngine
 from src.utils import flush_print_default
 
@@ -26,9 +26,12 @@ class View:
         self.screen: pygame.Surface = None
         self.images: dict = {}
         self.initialised = self.initialise()
+        self.current_click = (None,None)
 
     def notify(self, event):
         """Notify"""
+        if isinstance(event, Highlight):
+            self.current_click = event.square
         if isinstance(event, TickEvent):
             self.render()
         if isinstance(event, QuitEvent):
@@ -41,6 +44,8 @@ class View:
         if not self.initialised:
             return
         self.draw_board()
+        if self.current_click[0] is not None:
+            self.highlight_square()
         pygame.display.flip()
 
 
@@ -64,11 +69,28 @@ class View:
                         self.images[piece],
                         pygame.Rect(col * View.SQSIZE,row * View.SQSIZE,View.SQSIZE,View.SQSIZE,),)
 
+    def highlight_square(self):
+        moves = self.gamemodel.moves
+        highlight = self.create_highlight("blue")
+        row,col = self.current_click
+        cords = f'{row}{col}'
+        self.screen.blit(highlight, (self.current_click[0] * View.SQSIZE, self.current_click[1] * View.SQSIZE))
+        for move in moves:
+            if cords == move.split(':')[0]:
+                self.screen.blit(highlight, (int(move.split(':')[1][0]) * View.SQSIZE, int(move.split(':')[1][1]) * View.SQSIZE))
+
     def load_images(self):
         """Load the images into a dictionary"""
         pieces = ["wP","wR","wN","wB","wQ","wK","bP","bN","bQ","bR","bB","bK",]
         for piece in pieces:
             self.images[piece] = pygame.image.load("src/chess/assets/images/" + piece + ".png")
+
+    def create_highlight(self, color):
+        highlight = pygame.Surface((View.SQSIZE, View.SQSIZE))
+        highlight.set_alpha(75)
+        highlight.fill(pygame.Color(color))
+
+        return highlight
 
     def initialise(self):
         """Create and initialise a pygame instance"""
