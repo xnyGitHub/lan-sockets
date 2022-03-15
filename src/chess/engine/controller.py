@@ -42,8 +42,7 @@ class Controller:
                         (sc, sr),(ec, er) = self.player_clicks
                         move = f'{sc}{sr}:{ec}{er}'
                         if move in self.model.moves:
-                            message = json.dumps({"action": "game","sub_action":"make_move","payload": move})
-                            self.socket_send(message)
+                            self.socket_send(move)
                         self.reset_click()
 
     def reset_click(self):

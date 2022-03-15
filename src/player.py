@@ -40,7 +40,7 @@ class Player:
     def initialise_pygame(self):
         self.event_manager = EventManager()
         self.gamemodel = GameEngine(self.event_manager)
-        self.controller = Controller(self.event_manager, self.gamemodel, self.send)
+        self.controller = Controller(self.event_manager, self.gamemodel, self.make_move)
         self.graphics = View(self.event_manager, self.gamemodel)
         self.gamemodel.run()
 
@@ -88,7 +88,14 @@ class Player:
         self.send(message)
 
     def make_move(self, move):
-        message = json.dumps({"action": "game","sub_action":"make_move","payload": move})
+        message = json.dumps({"action"    : "game",
+                              "sub_action":"make_move",
+                              "payload"   :
+                                  {
+                                  "color" : self.color,
+                                  "move"  : move
+                                  }
+                              })
         self.send(message)
 
     def undo_move(self):

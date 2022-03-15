@@ -106,8 +106,18 @@ class Rooms:
 
     def service_data(self, data: dict):
         if data['sub_action'] == 'make_move':
-            move = data['payload']
-            self.game.make_move(move)
+            color = data['payload']['color']
+            move  = data['payload']['move']
+            if color == self.player_turn:
+                self.game.make_move(move)
+                self.switch_turns()
+            else:
+                socket = self.clients.get(color)
+                message = json.dumps({"action": "message", "payload": "'It's not your turn"})
+                socket.send((message + '\0').encode())
+
+
+
 
         if data['sub_action'] == 'undo_move':
             self.game.undo_move()
@@ -118,6 +128,12 @@ class Rooms:
         if len(self.players) == 2:
             return True
         return False
+
+    def switch_turns(self):
+        if self.player_turn == 'black':
+            self.player_turn = 'white'
+        elif self.player_turn == 'white':
+            self.player_turn = 'black'
 
 class RoomFull(Exception):
     pass
