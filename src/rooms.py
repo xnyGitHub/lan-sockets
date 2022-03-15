@@ -45,8 +45,10 @@ class Rooms:
 
     def __init__(self, room_name: str, max_spectator:int = None):
         self.room_name:str = room_name
-        self.clients:dict = {"white": None,
-                            "black": None}
+        self.clients:dict = {
+            "white": None,
+            "black": None
+            }
         self.game = None
         self.players:list = []
         self.spectators:list = []
@@ -56,11 +58,12 @@ class Rooms:
             self.MAX_SPECTATORS = max_spectator
 
     def join(self, player: socket.socket):
-        message = ''
+
         if self.is_full():
             raise RoomFull()
         self.players.append(player)
 
+        message = ''
         if self.clients.get("white") is None:
             self.clients['white'] = player
             message = json.dumps({"action": "id", "payload": 'white'})
@@ -76,11 +79,12 @@ class Rooms:
             self.send_players_gamestate()
 
     def send_players_gamestate(self):
-        message = {"action": "game",
-                    "payload": {"board": self.game.get_board().tolist(),
-                                "moves": '',
-                                "move_log": self.game.get_move_log()}
-                    }
+        message = {
+            "action": "game",
+            "sub_action": "update",
+            "payload": {"board": self.game.get_board().tolist(),"moves": '',"move_log": self.game.get_move_log()}
+            }
+
         for color, socket in self.clients.items():
             if color == "black":
                 message['payload']['moves'] = self.game.get_black_moves()
@@ -101,7 +105,14 @@ class Rooms:
             self.spectators.remove(player)
 
     def service_data(self, data: dict):
-        pass
+        if data['sub_action'] == 'make_move':
+            move = data['payload']
+            self.game.make_move(move)
+
+        if data['sub_action'] == 'undo_move':
+            self.game.undo_move()
+
+        self.send_players_gamestate()
 
     def is_full(self):
         if len(self.players) == 2:

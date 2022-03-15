@@ -5,7 +5,11 @@ class TickEvent(Event):
     pass
 
 class UpdateEvent(Event):
-    pass
+
+    def __init__(self,board,moves,log):
+        self.board = board
+        self.moves = moves
+        self.log = log
 
 
 class QuitEvent(Event):
