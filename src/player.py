@@ -27,6 +27,7 @@ class Player:
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connect(HOST, PORT)
         self.color = None
+        self.initialised = False
 
     def connect(self, host, port):
         """Connect to socket"""
@@ -43,6 +44,7 @@ class Player:
         self.controller = Controller(self.event_manager, self.gamemodel, self.make_move)
         self.graphics = View(self.event_manager, self.gamemodel)
         self.gamemodel.run()
+        self.initialised = False
 
     def send(self,message):
         """Send message to socket"""
@@ -108,8 +110,8 @@ class Player:
             print(f"You are playing as : {self.color}")
 
         if data['action'] == 'game':
-            # if data['sub_action'] == 'start':
-            #     threading.Thread(target=self.initialise_pygame).start()
+            if data['sub_action'] == 'start':
+                threading.Thread(target=self.initialise_pygame).start()
 
             if data['sub_action'] == 'update':
                 board, move, log = data['payload'].values()
@@ -127,21 +129,47 @@ class Player:
         self.sleep(1)
         if not self.connected:
             return
-        print("Connected!")
 
-        self.create_room("Room1")
-        self.join_room("Room1")
-
-        try:
-            self.initialise_pygame()
-        except KeyboardInterrupt:
-            pass
+        self.menu()
 
         print("Shutting down client...")
         self.connected = False
         self.sleep(2.5)  # Let threads finish before closing socket
         self.socket.close()
         print("Disconnected!")
+
+    def menu(self):
+        while self.connected:
+            choice = input("""------------------
+| A: Create Room |
+| B: List Rooms  |
+| C: Join Room   |
+| Q: Logout      |
+------------------
+Please enter your choice: """)
+
+            if not self.connected:
+                break
+
+            if choice.upper() == "A":
+                choice = str(input("Enter room name: "))
+                self.create_room(choice)
+
+            elif choice.upper() == "B":
+                self.get_rooms()
+
+            elif choice.upper() == "C":
+                choice = str(input("Enter room name: "))
+                self.join_room(choice)
+                self.initialised = True
+                while self.initialised:
+                    self.sleep(1)
+
+            elif choice.upper() =="Q":
+                self.connected = False
+                break
+            else:
+                print("Invalid option")
 
 if __name__ == "__main__":
     HOST = ""

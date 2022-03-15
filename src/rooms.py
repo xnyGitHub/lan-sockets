@@ -76,6 +76,9 @@ class Rooms:
 
         if self.is_full():
             self.game = GameEngine()
+            for player in self.clients.values():
+                message = json.dumps({"action": "game", "sub_action": 'start'})
+                player.send((message+ '\0').encode())
             self.send_players_gamestate()
 
     def send_players_gamestate(self):
