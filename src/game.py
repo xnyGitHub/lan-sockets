@@ -2,6 +2,7 @@
 from typing import Union, Tuple, List, Dict
 import numpy as np
 
+
 class GameEngine:
     """Holds the game state."""
 
@@ -31,65 +32,87 @@ class GameEngine:
 
         self.generate_all_moves()
 
-    def make_move(self, move):
-
-        start_cords, end_cords = move.split(':')
+    def make_move(self, move: str):
+        """
+        Make a move
+        Move param is a string in the format of "start:end" e.g 10:30
+        """
+        # Parsing
+        start_cords, end_cords = move.split(":")
         start_col, start_row = [int(x) for x in start_cords]
         end_col, end_row = [int(x) for x in end_cords]
 
+        # Make the move
         self.board[end_row][end_col] = self.board[start_row][start_col]
         self.board[start_row][start_col] = "--"
         self.player_turn = not self.player_turn
 
-        move_data = f'{start_cords}:{end_cords}:{self.board[start_row][start_col]}:{self.board[end_row][end_col]}'
+        # Add the move log and regen the moves
+        move_data = f"{start_cords}:{end_cords}:{self.board[start_row][start_col]}:{self.board[end_row][end_col]}"
         self.move_log.append(move_data)
         self.generate_all_moves()
 
     def undo_move(self):
+        """
+        Undo a move
+        Moves is the move_log are in the same format as in make_move
+        """
+
+        # Get latest move and parse it
         move = self.move_log[-1]
-        start_cords, end_cords, piece_captured, piece_moved = move.split(':')
+        start_cords, end_cords, piece_captured, piece_moved = move.split(":")
         start_col, start_row = [int(x) for x in start_cords]
         end_col, end_row = [int(x) for x in end_cords]
+
+        # Undo the move
         self.board[start_row][start_col] = piece_moved
         self.board[end_row][end_col] = piece_captured
 
         self.player_turn = not self.player_turn
-        self.move_log.pop()
-        self.generate_all_moves()
+        self.move_log.pop()  # Remove the undone move from list of moves
+        self.generate_all_moves()  # Regen all the moves
 
-    def get_white_moves(self):
+    def get_white_moves(self) -> List[str]:
+        """Return list of white moves"""
         return self.white_moves
 
-    def get_black_moves(self):
+    def get_black_moves(self) -> List[str]:
+        """Return list of black moves"""
         return self.black_moves
 
-    def get_board(self):
+    def get_board(self) -> List[List[str]]:
+        """Return the board"""
         return self.board
 
-    def get_move_log(self):
+    def get_move_log(self) -> List[str]:
+        """Return the move log"""
         return self.move_log
 
-    def piece_movemovents(self):
+    def piece_movemovents(self) -> dict:
         """Piece movements helper function"""
+        # pylint: disable=no-self-use
+        # fmt: off
         map_dict = {
             "P": {"movements": [1, -1], "continous": False},
             "R": {"movements": [(1, 0), (0, 1), (-1, 0), (0, -1)], "continous": True},
-            "N": {"movements": [(-2, -1),(-2, 1),(2, -1),(2, 1),(-1, -2),(1, -2),(-1, 2),(1, 2),],"continous": False,},
+            "N": {"movements": [(-2, -1),(-2, 1),(2, -1),(2, 1),(-1, -2),(1, -2),(-1, 2),(1, 2),],"continous": False},
             "B": {"movements": [(1, 1), (-1, 1), (1, -1), (-1, -1)], "continous": True},
-            "Q": {"movements": [(1, 1),(-1, 1),(1, -1),(-1, -1),(1, 0),(0, 1),(-1, 0),(0, -1),],"continous": True,},
-            "K": {"movements": [(1, 1),(-1, 1),(1, -1),(-1, -1),(1, 0),(0, 1),(-1, 0),(0, -1),],"continous": False,},
+            "Q": {"movements": [(1, 1),(-1, 1),(1, -1),(-1, -1),(1, 0),(0, 1),(-1, 0),(0, -1),],"continous": True},
+            "K": {"movements": [(1, 1),(-1, 1),(1, -1),(-1, -1),(1, 0),(0, 1),(-1, 0),(0, -1),],"continous": False}
         }
+        # fmt: on
         return map_dict
 
-
-    def is_in_bounds(self,new_x: int, new_y: int) -> bool:
+    def is_in_bounds(self, new_x: int, new_y: int) -> bool:
         """Check if a set of cords is in-bounds"""
+        # pylint: disable=no-self-use
         if 0 <= new_x <= 7 and 0 <= new_y <= 7:
             return True
         return False
 
-    def has_pawn_moved(self,current_row: int, piece_color: str) -> bool:
+    def has_pawn_moved(self, current_row: int, piece_color: str) -> bool:
         """Given a row and color return whether a pawn has moved"""
+        # pylint: disable=no-self-use
         if current_row == 6 and piece_color == "w":
             return False
         if current_row == 1 and piece_color == "b":
@@ -109,11 +132,11 @@ class GameEngine:
         self.black_moves.clear()
 
         # Loop board and get moves for each pieace
-        for index, chess_square in np.ndenumerate(self.board): # Type: tuple(int,int) , str
+        for index, chess_square in np.ndenumerate(self.board):  # Type: tuple(int,int) , str
             if chess_square != "--":
 
                 array: list = []
-                piece_color, piece_type = chess_square # Type: str, str
+                piece_color, piece_type = chess_square  # Type: str, str
                 array = self.white_moves if piece_color == "w" else self.black_moves
 
                 if piece_type == "P":  # Pawn
@@ -121,9 +144,7 @@ class GameEngine:
                 else:
                     self.get_non_pawn_moves(index, array, chess_square)
 
-
-
-    def get_non_pawn_moves(self, index: Tuple[int,int], array: List[Dict[list,bool]], chess_square: str) -> None:
+    def get_non_pawn_moves(self, index: Tuple[int, int], array: List[Dict[list, bool]], chess_square: str) -> None:
         """Generate non-pawn moves here"""
         # ---------------
         row, col = index
@@ -150,7 +171,7 @@ class GameEngine:
                     array.append(f"{col}{row}:{new_col}{new_row}")
                     break
 
-    def get_pawn_moves(self, index: Tuple[int,int], array: List[Dict[list,bool]], chess_square: str) -> None:
+    def get_pawn_moves(self, index: Tuple[int, int], array: List[Dict[list, bool]], chess_square: str) -> None:
         """Generate pawn moves"""
         # -------------------------------------
         row, col = index
@@ -167,12 +188,12 @@ class GameEngine:
                 array.append(f"{col}{row}:{col}{row + direction}")
 
                 # Two square move
-                if (not self.has_pawn_moved(row, piece_color) and self.board[row + (direction * 2)][col] == "--"):
+                if not self.has_pawn_moved(row, piece_color) and self.board[row + (direction * 2)][col] == "--":
                     array.append(f"{col}{row}:{col}{row+(direction*2)}")
 
             # Captures
             for add_y in movements:
                 if 0 <= (col + add_y) <= 7:
                     if self.board[row + direction][col + add_y][0] != "-":
-                        if (self.board[row + direction][col + add_y][0] != piece_color):  # Move up left check
+                        if self.board[row + direction][col + add_y][0] != piece_color:  # Move up left check
                             array.append(f"{col}{row}:{col+ add_y}{row+direction}")

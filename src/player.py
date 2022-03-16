@@ -7,7 +7,6 @@ import sys
 import threading
 import time
 import json
-import pygame
 
 from src.chess.engine.controller import Controller
 from src.chess.engine.event import EventManager, UpdateEvent
@@ -21,15 +20,19 @@ print = flush_print_default(print)
 class Player:
     """Player class"""
 
-    def __init__(self, HOST, PORT):
+    def __init__(self, host: str, port: str):
         self.connected = False
         self.queue = queue.Queue(maxsize=10)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.connect(HOST, PORT)
+        self.connect(host, port)
         self.color = None
         self.initialised = False
+        self.event_manager = None
+        self.gamemodel = None
+        self.controller = None
+        self.graphics = None
 
-    def connect(self, host, port):
+    def connect(self, host: str, port: str) -> None:
         """Connect to socket"""
         try:
             self.socket.connect((host, port))
@@ -38,7 +41,8 @@ class Player:
             sys.exit(0)
         self.connected = True
 
-    def initialise_pygame(self):
+    def initialise_pygame(self) -> None:
+        """Initialise the MVC model for pygame and run it"""
         self.event_manager = EventManager()
         self.gamemodel = GameEngine(self.event_manager)
         self.controller = Controller(self.event_manager, self.gamemodel, self.make_move)
@@ -46,15 +50,15 @@ class Player:
         self.gamemodel.run()
         self.initialised = False
 
-    def send(self,message):
+    def send(self, message: str) -> None:
         """Send message to socket"""
-        self.socket.sendall((message+ '\0').encode())
+        self.socket.sendall((message + "\0").encode())
 
-    def sleep(self, sec):
+    def sleep(self, sec: int) -> None:
         """Zzz"""
         time.sleep(sec)
 
-    def recieve(self):
+    def recieve(self) -> None:
         """Socket listener function"""
         while self.connected:
             try:
@@ -70,57 +74,58 @@ class Player:
                         self.connected = False
                         break
 
-                    message = ''
-                    strings = data.split(b'\0')
+                    message = ""
+                    strings = data.split(b"\0")
                     for msg in strings:
-                        if msg != b'':
+                        if msg != b"":
                             message = json.loads(msg)
                             self.service_data(message)
 
-    def create_room(self,room_name):
+    def create_room(self, room_name: str) -> None:
+        """Create a room with user input as name"""
         message = json.dumps({"action": "create", "payload": room_name})
         self.send(message)
 
-    def join_room(self,room_name):
+    def join_room(self, room_name: str) -> None:
+        """Join a room"""
         message = json.dumps({"action": "join", "payload": room_name})
         self.send(message)
 
-    def get_rooms(self):
+    def get_rooms(self) -> None:
+        """Get a list of all room"""
         message = json.dumps({"action": "get_rooms"})
         self.send(message)
 
-    def make_move(self, move):
-        message = json.dumps({"action"    : "game",
-                              "sub_action":"make_move",
-                              "payload"   :
-                                  {
-                                  "color" : self.color,
-                                  "move"  : move
-                                  }
-                              })
+    def make_move(self, move: str) -> None:
+        """Make a move"""
+        message = json.dumps(
+            {"action": "game", "sub_action": "make_move", "payload": {"color": self.color, "move": move}}
+        )
         self.send(message)
 
-    def undo_move(self):
-        message = json.dumps({"action": "game","sub_action":"undo_move"})
+    def undo_move(self) -> None:
+        """Undo a move"""
+        message = json.dumps({"action": "game", "sub_action": "undo_move"})
         self.send(message)
 
-    def service_data(self,data):
-        if data['action'] == 'id':
-            self.color = data['payload']
+    def service_data(self, data: dict) -> None:
+        """Service the data sent from the server"""
+        if data["action"] == "id":
+            self.color = data["payload"]
             print(f"You are playing as : {self.color}")
 
-        if data['action'] == 'game':
-            if data['sub_action'] == 'start':
+        if data["action"] == "game":
+            if data["sub_action"] == "start":
                 threading.Thread(target=self.initialise_pygame).start()
 
-            if data['sub_action'] == 'update':
-                board, move, log = data['payload'].values()
-                self.event_manager.post(UpdateEvent(board,move,log))
+            if data["sub_action"] == "update":
+                board, move, log = data["payload"].values()
+                self.event_manager.post(UpdateEvent(board, move, log))
 
-        if data['action'] == 'message':
-            print(data['payload'])
+        if data["action"] == "message":
+            print(data["payload"])
 
-    def start(self):
+    def start(self) -> None:
         """Start the server"""
         print("Connecting to server...")
 
@@ -138,15 +143,18 @@ class Player:
         self.socket.close()
         print("Disconnected!")
 
-    def menu(self):
+    def menu(self) -> None:
+        """Main menu"""
         while self.connected:
-            choice = input("""------------------
+            choice = input(
+                """------------------
 | A: Create Room |
 | B: List Rooms  |
 | C: Join Room   |
 | Q: Logout      |
 ------------------
-Please enter your choice: """)
+Please enter your choice: """
+            )
 
             if not self.connected:
                 break
@@ -165,11 +173,12 @@ Please enter your choice: """)
                 while self.initialised:
                     self.sleep(1)
 
-            elif choice.upper() =="Q":
+            elif choice.upper() == "Q":
                 self.connected = False
                 break
             else:
                 print("Invalid option")
+
 
 if __name__ == "__main__":
     HOST = ""

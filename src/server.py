@@ -1,4 +1,4 @@
-""" Socket module"""
+""" Socket module"""  # pylint: disable =redefined-builtin
 import select
 import signal
 import socket
@@ -26,7 +26,6 @@ class Socket:
         self.connections = 0
         self.server_rooms = Room.instance()
 
-
     def check_running_threads(self):
         """Check number of threaded clients"""
         self.connections = threading.active_count() - 1
@@ -46,7 +45,7 @@ class Socket:
                             continue
 
                         # Start a new client thread
-                        new_client = ThreadedClient(client,self.server_rooms)
+                        new_client = ThreadedClient(client, self.server_rooms)
                         new_client.start()
                         self.running_threads.append(new_client)
 
