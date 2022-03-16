@@ -6,7 +6,7 @@ endif
 
 lint:
 	black src --line-length 120
-	pylint src --max-line-length 120
+	pylint --rcfile .pylintrc  --max-line-length 120 src
 
 server:
 	$(PYTHON) -m src.server

@@ -1,4 +1,7 @@
+"""Model class for MVC"""
 from src.chess.engine.event import EventManager, QuitEvent, TickEvent, UpdateEvent, Event
+
+
 class GameEngine:
     """Holds the game state."""
 
@@ -7,26 +10,37 @@ class GameEngine:
         self.ev_manager: EventManager = ev_manager
         ev_manager.register_listener(self)
         self.running: bool = False
+        self.moves: list = []
+        self.move_log: list = []
 
         """Default board constructor"""
-        self.board: list =[
-                ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"],
-                ["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"],
-                ["--", "--", "--", "--", "--", "--", "--", "--"],
-                ["--", "--", "--", "--", "--", "--", "--", "--"],
-                ["--", "--", "--", "--", "--", "--", "--", "--"],
-                ["--", "--", "--", "--", "--", "--", "--", "--"],
-                ["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"],
-                ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bB"],
-            ]
+        self.board: list = [
+            ["--", "--", "--", "--", "--", "--", "--", "--"],
+            ["--", "--", "--", "--", "--", "--", "--", "--"],
+            ["--", "--", "--", "--", "--", "--", "--", "--"],
+            ["--", "--", "--", "--", "--", "--", "--", "--"],
+            ["--", "--", "--", "--", "--", "--", "--", "--"],
+            ["--", "--", "--", "--", "--", "--", "--", "--"],
+            ["--", "--", "--", "--", "--", "--", "--", "--"],
+            ["--", "--", "--", "--", "--", "--", "--", "--"],
+        ]
+
     def notify(self, event: Event) -> None:
         """Notify"""
         if isinstance(event, QuitEvent):
             self.running = False
+
         if isinstance(event, UpdateEvent):
-           pass
+            self.update(event.board, event.moves, event.log)
+
         if isinstance(event, TickEvent):
-           pass
+            pass
+
+    def update(self, board: list, moves: list, move_log: list) -> None:
+        """Update the client gamestate when socket sends new gamestate"""
+        self.board = board
+        self.moves = moves
+        self.move_log = move_log
 
     def run(self) -> None:
         """Starts the game engine loop"""
