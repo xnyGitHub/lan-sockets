@@ -22,15 +22,15 @@ class Player:
 
     def __init__(self, host: str, port: str):
         self.connected = False
-        self.queue = queue.Queue(maxsize=10)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connect(host, port)
-        self.color = None
-        self.initialised = False
-        self.event_manager = None
-        self.gamemodel = None
-        self.controller = None
-        self.graphics = None
+        self.running: bool = True
+        self.color: str = "None"
+        self.initialised: bool = False
+        self.event_manager: EventManager = None
+        self.gamemodel: GameEngine = None
+        self.controller: Controller = None
+        self.graphics: View = None
 
     def connect(self, host: str, port: str) -> None:
         """Connect to socket"""
@@ -47,8 +47,7 @@ class Player:
         self.gamemodel = GameEngine(self.event_manager)
         self.controller = Controller(self.event_manager, self.gamemodel, self.make_move)
         self.graphics = View(self.event_manager, self.gamemodel)
-        self.gamemodel.run()
-        self.initialised = False
+        self.initialised = True
 
     def send(self, message: str) -> None:
         """Send message to socket"""
@@ -116,7 +115,8 @@ class Player:
 
         if data["action"] == "game":
             if data["sub_action"] == "start":
-                threading.Thread(target=self.initialise_pygame).start()
+                self.initialised = True
+                self.sleep(1)
 
             if data["sub_action"] == "update":
                 board, move, log = data["payload"].values()
@@ -135,7 +135,17 @@ class Player:
         if not self.connected:
             return
 
-        self.menu()
+        menu_runing  = False
+        while self.running:
+            if not menu_runing:
+                threading.Thread(target=self.menu).start()
+                menu_runing = True
+
+            if self.initialised:
+                self.initialise_pygame()
+                self.gamemodel.run()
+                self.initialised = False
+                menu_runing = False
 
         print("Shutting down client...")
         self.connected = False
@@ -145,7 +155,7 @@ class Player:
 
     def menu(self) -> None:
         """Main menu"""
-        while self.connected:
+        while True:
             choice = input(
                 """------------------
 | A: Create Room |
@@ -155,9 +165,6 @@ class Player:
 ------------------
 Please enter your choice: """
             )
-
-            if not self.connected:
-                break
 
             if choice.upper() == "A":
                 choice = str(input("Enter room name: "))
@@ -169,12 +176,9 @@ Please enter your choice: """
             elif choice.upper() == "C":
                 choice = str(input("Enter room name: "))
                 self.join_room(choice)
-                self.initialised = True
-                while self.initialised:
-                    self.sleep(1)
-
+                break
             elif choice.upper() == "Q":
-                self.connected = False
+                self.running = False
                 break
             else:
                 print("Invalid option")
