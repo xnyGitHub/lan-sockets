@@ -23,26 +23,17 @@ class Socket:
         self.sock.bind((host, port))
         self.sock.listen(2)
         self.running_threads = []
-        self.connections = 0
         self.server_rooms = Room.instance()
-
-    def check_running_threads(self):
-        """Check number of threaded clients"""
-        self.connections = threading.active_count() - 1
 
     def run(self):
         """Entry to point to start server"""
         print("Server is running!")
         while True:
-            self.check_running_threads()
             try:  # So we can KeyBoard Interrupt
                 readable, _, _ = select.select([self.sock], [], [], 2)
                 for obj in readable:
                     if obj is self.sock:
                         client, _ = self.sock.accept()  # Blocking
-                        if self.connections == 2:  # Max connections
-                            client.close()  # Close client instantly
-                            continue
 
                         # Start a new client thread
                         new_client = ThreadedClient(client, self.server_rooms)
