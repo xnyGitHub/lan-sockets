@@ -32,13 +32,6 @@ class Room:
 
         return self.game_rooms[room_name]
 
-    def spectate(self, room_name):
-        """Join as a spectator"""
-        if room_name not in self.game_rooms:
-            raise RoomNotFound()
-
-        return self.game_rooms[room_name]
-
     def get_all_rooms(self):
         """Get a list of all the rooms created"""
         if not self.game_rooms:
@@ -59,18 +52,13 @@ class Rooms:
     This rooms holds the GameEngine object and services the data sent by the user
     """
 
-    max_spectators: int = 2
 
-    def __init__(self, room_name: str, max_spectator: int = None):
+    def __init__(self, room_name: str):
         self.room_name: str = room_name
         self.clients: dict = {"white": None, "black": None}
         self.game = None
         self.players: list = []
-        self.spectators: list = []
         self.player_turn: str = "white"
-
-        if max_spectator is not None:
-            self.max_spectators = max_spectator
 
     def join(self, player_address: socket.socket):
         """Join the room"""
@@ -112,10 +100,6 @@ class Rooms:
             dumped = json.dumps(message)
             player.send((dumped + "\0").encode())
 
-    def spectate(self, player_address):
-        """Add a spectator to the spectator array"""
-        self.spectators.append(player_address)
-
     def leave(self, player_address):
         """Remove a player from a room"""
         if player_address in self.players:
@@ -125,12 +109,6 @@ class Rooms:
             for color, client_address in dict(self.clients).items():
                 if player_address == client_address:
                     del self.clients[color]
-
-            for spectators in self.spectators:
-                self.spectators.remove()
-
-        if player_address in self.spectators:
-            self.spectators.remove(player_address)
 
     def service_data(self, data: dict):
         """Service the data sent by the players"""

@@ -60,15 +60,6 @@ class ThreadedClient(threading.Thread):
             except RoomFull:
                 message["payload"] = "Error: Room is full"
 
-        if data["action"] == "spectate":
-            payload = data["payload"]
-            try:
-                self.game_room = self.server_room.spectate(payload)
-                self.game_room.spectate(self.client)
-                message["payload"] = f"Spectating {payload}"
-            except RoomNotFound:
-                message["payload"] = "Error: Room not found"
-
         if data["action"] == "get_rooms":
             message["payload"] = self.server_room.get_all_rooms()
 
