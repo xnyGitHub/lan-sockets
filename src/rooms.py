@@ -1,4 +1,5 @@
 """Server rooms and room module"""
+from re import L
 import socket
 import json
 from src.game import GameEngine
@@ -119,6 +120,14 @@ class Rooms:
         """Remove a player from a room"""
         if player_address in self.players:
             self.players.remove(player_address)
+
+            # If either player leaves, remove both
+            for color, client_address in dict(self.clients).items():
+                if player_address == client_address:
+                    del self.clients[color]
+
+            for spectators in self.spectators:
+                self.spectators.remove()
 
         if player_address in self.spectators:
             self.spectators.remove(player_address)

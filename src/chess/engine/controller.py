@@ -2,6 +2,7 @@
 import os
 from typing import Callable
 import pygame
+import json
 from src.chess.engine.event import Event, EventManager, Highlight, QuitEvent, TickEvent
 from src.chess.engine.game import GameEngine
 
@@ -11,11 +12,11 @@ os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
 class Controller:
     """Controller class"""
 
-    def __init__(self, event_manager: EventManager, model: GameEngine, callback_send: Callable):
+    def __init__(self, event_manager: EventManager, model: GameEngine, send_to_server: Callable):
         self.event_manager = event_manager
         event_manager.register_listener(self)
         self.model: GameEngine = model
-        self.callback_send: Callable = callback_send
+        self.send_to_server: Callable = send_to_server
         self.square_selected: tuple = ()
         self.player_clicks: list = []
 
@@ -30,6 +31,7 @@ class Controller:
 
                 if event.type == pygame.QUIT:
                     self.event_manager.post(QuitEvent())
+                    self.leave_room()
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
 
@@ -48,8 +50,20 @@ class Controller:
                         move = self.convert_click_to_str()
 
                         if move in self.model.moves:
-                            self.callback_send(move)
+                            self.make_move(move)
                         self.reset_click()
+
+    def make_move(self, move: str) -> None:
+        """Make a move"""
+        message = json.dumps(
+            {"action": "game", "sub_action": "make_move", "payload": {"color": self.model.get_color(), "move": move}}
+        )
+        self.send_to_server(message)
+
+    def leave_room(self) -> None:
+        """Make a move"""
+        message = json.dumps({"action": "leave_room", "sub_action": "leave"})
+        self.send_to_server(message)
 
     def convert_click_to_str(self) -> str:
         """Convert player click tuple to xx:xx format"""

@@ -45,7 +45,7 @@ class Player:
         """Initialise the MVC model for pygame and run it"""
         self.event_manager = EventManager()
         self.gamemodel = GameEngine(self.event_manager)
-        self.controller = Controller(self.event_manager, self.gamemodel, self.make_move)
+        self.controller = Controller(self.event_manager, self.gamemodel, self.send)
         self.graphics = View(self.event_manager, self.gamemodel)
         self.initialised = True
 
@@ -95,13 +95,6 @@ class Player:
         message = json.dumps({"action": "get_rooms"})
         self.send(message)
 
-    def make_move(self, move: str) -> None:
-        """Make a move"""
-        message = json.dumps(
-            {"action": "game", "sub_action": "make_move", "payload": {"color": self.color, "move": move}}
-        )
-        self.send(message)
-
     def undo_move(self) -> None:
         """Undo a move"""
         message = json.dumps({"action": "game", "sub_action": "undo_move"})
@@ -143,6 +136,7 @@ class Player:
 
             if self.initialised:
                 self.initialise_pygame()
+                self.gamemodel.set_color(self.color)
                 self.gamemodel.run()
                 self.initialised = False
                 menu_runing = False

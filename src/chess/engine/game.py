@@ -12,6 +12,7 @@ class GameEngine:
         self.running: bool = False
         self.moves: list = []
         self.move_log: list = []
+        self.color: str = "None"
 
         """Default board constructor"""
         self.board: list = [
@@ -35,6 +36,12 @@ class GameEngine:
 
         if isinstance(event, TickEvent):
             pass
+
+    def set_color(self, color:str) -> None:
+        self.color = color
+
+    def get_color(self) -> str:
+        return self.color
 
     def update(self, board: list, moves: list, move_log: list) -> None:
         """Update the client gamestate when socket sends new gamestate"""
