@@ -73,6 +73,7 @@ class ThreadedClient(threading.Thread):
 
         if data["action"] == "game":
             self.game_room.service_data(data)
+            return
 
         self.client.send((json.dumps(message) + "\0").encode())
 
