@@ -9,7 +9,7 @@ import time
 import json
 
 from src.chess.engine.controller import Controller
-from src.chess.engine.event import EventManager, UpdateEvent
+from src.chess.engine.event import EventManager, QuitEvent, ThreadQuitEvent, UpdateEvent
 from src.chess.engine.game import GameEngine
 from src.chess.engine.view import View
 from src.utils import ctrlc_handler, flush_print_default
@@ -116,7 +116,11 @@ class Player:
                 self.event_manager.post(UpdateEvent(board, move, log))
 
         if data["action"] == "message":
-            print(data["payload"])
+            if data["payload"] == "You win!":
+                self.event_manager.post(ThreadQuitEvent())
+                print(data["payload"])
+            else:
+                print(data["payload"])
 
     def start(self) -> None:
         """Start the server"""

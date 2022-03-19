@@ -1,7 +1,7 @@
 """View class for MVC"""  # pylint: disable=redefined-builtin,no-member
 import os
 import pygame
-from src.chess.engine.event import EventManager, Event, QuitEvent, TickEvent, Highlight
+from src.chess.engine.event import EventManager, Event, QuitEvent, TickEvent, Highlight, ThreadQuitEvent
 from src.chess.engine.game import GameEngine
 from src.utils import flush_print_default
 
@@ -41,6 +41,9 @@ class View:
         if isinstance(event, QuitEvent):
             self.initialised = False
             pygame.quit()
+
+        if isinstance(event, ThreadQuitEvent):
+            pygame.event.post(pygame.event.Event(pygame.QUIT))
 
     def render(self) -> None:
         """Render"""

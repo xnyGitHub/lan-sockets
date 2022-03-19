@@ -57,6 +57,7 @@ class Rooms:
         self.room_name: str = room_name
         self.clients: dict = {"white": None, "black": None}
         self.game = None
+        self.game_in_progress = False
         self.players: list = []
         self.player_turn: str = "white"
 
@@ -77,11 +78,20 @@ class Rooms:
         player_address.send((message + "\0").encode())
 
         if self.is_full():
-            self.game = GameEngine()
-            for address in self.clients.values():
+            self.start_game()
+            self.send_players_gamestate()
+
+    def start_game(self):
+        self.game_in_progress = True
+        self.game = GameEngine()
+        for address in self.clients.values():
                 message = json.dumps({"action": "game", "sub_action": "start"})
                 address.send((message + "\0").encode())
-            self.send_players_gamestate()
+
+    def is_game_running(self):
+        if self.game is None:
+            return False
+        return True
 
     def send_players_gamestate(self):
         """Send the players the new gamestate when a move is made"""
@@ -109,6 +119,11 @@ class Rooms:
             for color, client_address in dict(self.clients).items():
                 if player_address == client_address:
                     del self.clients[color]
+
+                if player_address != client_address and self.game_in_progress:
+                    self.game_in_progress = False
+                    message = json.dumps({"action": "message", "payload": "You win!"})
+                    client_address.send((message + "\0").encode())
 
     def service_data(self, data: dict):
         """Service the data sent by the players"""

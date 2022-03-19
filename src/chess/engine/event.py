@@ -8,6 +8,8 @@ class Event:
 class TickEvent(Event):
     """Tick event"""
 
+class ThreadQuitEvent(Event):
+    """Quit event from non-main thread"""
 
 class UpdateEvent(Event):
     """Used to update client side board"""
