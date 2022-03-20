@@ -6,7 +6,8 @@ endif
 
 lint:
 	black src --line-length 120
-	pylint --rcfile .pylintrc  --max-line-length 120 src
+	mypy src --disallow-untyped-defs --check-untyped-defs --show-error-codes
+	pylint --rcfile .pylintrc  --max-line-length 120 --fail-under 9 src
 
 server:
 	$(PYTHON) -m src.server
