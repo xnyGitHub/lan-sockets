@@ -10,18 +10,18 @@ from src.rooms import Room, RoomFull, RoomNameAlreadyTaken, RoomNotFound, Rooms
 class ThreadedClient(threading.Thread):
     """Threadclient class for each client that connects"""
 
-    def __init__(self, client: socket.socket, room: Room):
+    def __init__(self, client: socket.socket, room: Room) -> None:
         threading.Thread.__init__(self)
         self.event: threading.Event = threading.Event()
         self.client: socket.socket = client
         self.server_room: Room = room
-        self.game_room: Rooms = None
+        self.game_room: Rooms
 
-    def run(self):
+    def run(self) -> None:
         """Main function for threaded client"""
         print(f"{self.client.getsockname()[0]} has connected")
         while not self.event.is_set():
-            readable, _, _ = select.select([self.client], [], [], 2)  # Type list, list, list
+            readable, _, _ = select.select([self.client], [], [], 2)
             for obj in readable:
                 if obj is self.client:
                     data = self.client.recv(4096)
@@ -37,7 +37,7 @@ class ThreadedClient(threading.Thread):
 
         print(f"{self.client.getsockname()[0]} has disconnected")
 
-    def service_data(self, data: dict):
+    def service_data(self, data: dict) -> None:
         """Parse the user data and service it accordingly"""
         message: dict = {"action": "message", "payload": ""}
 
@@ -68,7 +68,7 @@ class ThreadedClient(threading.Thread):
                 message["payload"] = "You aren't in a room"
             else:
                 self.game_room.leave(self.client)
-                self.game_room = None
+                self.game_room = None  # type: ignore
                 message["payload"] = "You left the room"
 
         if data["action"] == "game":
@@ -77,6 +77,6 @@ class ThreadedClient(threading.Thread):
 
         self.client.send((json.dumps(message) + "\0").encode())
 
-    def set_event(self):
+    def set_event(self) -> None:
         """Stop the thread"""
         self.event.set()

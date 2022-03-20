@@ -3,7 +3,6 @@ import select
 import signal
 import socket
 import sys
-import threading
 
 
 from src.utils import ctrlc_handler, flush_print_default
@@ -18,14 +17,14 @@ class Socket:
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    def __init__(self, host, port):
+    def __init__(self, host: str, port: int) -> None:
         print("Initialising server...")
         self.sock.bind((host, port))
         self.sock.listen(2)
-        self.running_threads = []
-        self.server_rooms = Room.instance()
+        self.running_threads: list = []
+        self.server_rooms: Room = Room.instance()  # type: ignore
 
-    def run(self):
+    def run(self) -> None:
         """Entry to point to start server"""
         print("Server is running!")
         while True:
@@ -33,7 +32,7 @@ class Socket:
                 readable, _, _ = select.select([self.sock], [], [], 2)
                 for obj in readable:
                     if obj is self.sock:
-                        client, _ = self.sock.accept()  # Blocking
+                        client, _ = self.sock.accept()
 
                         # Start a new client thread
                         new_client = ThreadedClient(client, self.server_rooms)

@@ -5,7 +5,7 @@ from src.chess.engine.event import EventManager, QuitEvent, TickEvent, UpdateEve
 class GameEngine:
     """Holds the game state."""
 
-    def __init__(self, ev_manager: EventManager):
+    def __init__(self, ev_manager: EventManager) -> None:
         """Create new gamestate"""
         self.ev_manager: EventManager = ev_manager
         ev_manager.register_listener(self)
@@ -37,10 +37,12 @@ class GameEngine:
         if isinstance(event, TickEvent):
             pass
 
-    def set_color(self, color:str) -> None:
+    def set_color(self, color: str) -> None:
+        """Set the player color"""
         self.color = color
 
     def get_color(self) -> str:
+        """Return the player color"""
         return self.color
 
     def update(self, board: list, moves: list, move_log: list) -> None:

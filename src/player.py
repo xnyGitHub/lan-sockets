@@ -1,15 +1,15 @@
-"""Player module"""
-import queue
+"""Player module"""  # pylint: disable =no-self-use
 import select
 import signal
 import socket
 import sys
 import threading
 import time
+from typing import Union
 import json
 
 from src.chess.engine.controller import Controller
-from src.chess.engine.event import EventManager, QuitEvent, ThreadQuitEvent, UpdateEvent
+from src.chess.engine.event import EventManager, ThreadQuitEvent, UpdateEvent
 from src.chess.engine.game import GameEngine
 from src.chess.engine.view import View
 from src.utils import ctrlc_handler, flush_print_default
@@ -20,19 +20,19 @@ print = flush_print_default(print)
 class Player:
     """Player class"""
 
-    def __init__(self, host: str, port: str):
+    def __init__(self, host: str, port: int) -> None:
         self.connected = False
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connect(host, port)
         self.running: bool = True
         self.color: str = "None"
         self.initialised: bool = False
-        self.event_manager: EventManager = None
-        self.gamemodel: GameEngine = None
-        self.controller: Controller = None
-        self.graphics: View = None
+        self.event_manager: EventManager
+        self.gamemodel: GameEngine
+        self.controller: Controller
+        self.graphics: View
 
-    def connect(self, host: str, port: str) -> None:
+    def connect(self, host: str, port: int) -> None:
         """Connect to socket"""
         try:
             self.socket.connect((host, port))
@@ -53,7 +53,7 @@ class Player:
         """Send message to socket"""
         self.socket.sendall((message + "\0").encode())
 
-    def sleep(self, sec: int) -> None:
+    def sleep(self, sec: Union[int, float]) -> None:
         """Zzz"""
         time.sleep(sec)
 
@@ -73,7 +73,7 @@ class Player:
                         self.connected = False
                         break
 
-                    message = ""
+                    message: dict
                     strings = data.split(b"\0")
                     for msg in strings:
                         if msg != b"":
@@ -132,7 +132,7 @@ class Player:
         if not self.connected:
             return
 
-        menu_runing  = False
+        menu_runing = False
         while self.running:
             if not menu_runing:
                 threading.Thread(target=self.menu).start()

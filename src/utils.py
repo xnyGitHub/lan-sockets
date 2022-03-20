@@ -1,18 +1,20 @@
 """Util class"""
+from types import FrameType
+from typing import Callable, Type
 
 
-def flush_print_default(func):
+def flush_print_default(func: Callable) -> Callable:
     """Print flush decorator for MINGW64"""
     printer = func
 
-    def wrapped(*args):
+    def wrapped(*args: str) -> None:
         printer(*args, flush=True)
 
     return wrapped
 
 
 # pylint: disable=unused-argument
-def ctrlc_handler(signum, frame):
+def ctrlc_handler(signum: int, frame: FrameType) -> None:
 
     """Crtl+Z handler for mac"""
     print("Ctrl+Z pressed, but ignored, use Ctrl+C instead")
@@ -34,10 +36,10 @@ class Singleton:
 
     """
 
-    def __init__(self, decorated):
+    def __init__(self, decorated: Type) -> None:
         self._decorated = decorated
 
-    def instance(self):
+    def instance(self) -> object:
         """
         Returns the singleton instance. Upon its first call, it creates a
         new instance of the decorated class and calls its `__init__` method.
@@ -47,11 +49,11 @@ class Singleton:
         try:
             return self._instance
         except AttributeError:
-            self._instance = self._decorated()
+            self._instance: object = self._decorated()
             return self._instance
 
-    def __call__(self):
+    def __call__(self) -> None:
         raise TypeError("Singletons must be accessed through `instance()`.")
 
-    def __instancecheck__(self, inst):
+    def __instancecheck__(self, inst: object) -> bool:
         return isinstance(inst, self._decorated)

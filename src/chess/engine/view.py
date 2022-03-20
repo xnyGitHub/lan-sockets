@@ -1,4 +1,4 @@
-"""View class for MVC"""  # pylint: disable=redefined-builtin,no-member
+"""View class for MVC"""  # pylint: disable=redefined-builtin,no-member,no-self-use
 import os
 import pygame
 from src.chess.engine.event import EventManager, Event, QuitEvent, TickEvent, Highlight, ThreadQuitEvent
@@ -16,16 +16,16 @@ class View:
 
     WIDTH = HEIGHT = 512  # Heigh and width of the board
     DIMENSION = 8  # This will cause 8 squares to be print on the board
-    SQSIZE = HEIGHT / DIMENSION  # Dimensions of the square
+    SIZE = HEIGHT / DIMENSION  # Dimensions of the square
 
     GREEN: tuple = (119, 149, 86)  # Off Green colour
     WHITE: tuple = (235, 235, 208)  # Off White Color
 
-    def __init__(self, event_manager: EventManager, gamemodel: GameEngine):
+    def __init__(self, event_manager: EventManager, gamemodel: GameEngine) -> None:
         self.event_manager = event_manager
         self.gamemodel: GameEngine = gamemodel
         self.event_manager.register_listener(self)
-        self.screen: pygame.Surface = None
+        self.screen: pygame.surface.Surface
         self.images: dict = {}
         self.initialised: bool = self.initialise()
         self.current_click: tuple = (None, None)
@@ -52,8 +52,9 @@ class View:
             return
         self.draw_board()
 
-        if self.current_click[0] is not None:
-            self.highlight_square()
+        if self.current_click[0] is not None:  # Check if the user has selected a square
+            self.highlight_square()  # Draw highlighed square
+
         pygame.display.flip()
 
     def draw_board(self) -> None:
@@ -66,17 +67,13 @@ class View:
                 color = colors[((row + col) % 2)]
 
                 pygame.draw.rect(
-                    self.screen,
-                    color,
-                    pygame.Rect(col * View.SQSIZE, row * View.SQSIZE, View.SQSIZE, View.SQSIZE),
+                    self.screen, color, pygame.Rect(col * View.SIZE, row * View.SIZE, View.SIZE, View.SIZE)
                 )
                 # fmt: off
                 piece = board[row][col]
                 if piece != "--":
-                    self.screen.blit(
-                        self.images[piece],
-                        pygame.Rect(col * View.SQSIZE,row * View.SQSIZE,View.SQSIZE,View.SQSIZE,),
-                    )
+                    image = self.images[piece]
+                    self.screen.blit(image,pygame.Rect(col * View.SIZE,row * View.SIZE,View.SIZE,View.SIZE,))
                 # fmt: on
 
     def highlight_square(self) -> None:
@@ -84,11 +81,11 @@ class View:
         highlight: pygame.Surface = self.create_highlight("blue")
         cords: str = "".join(str(point) for point in self.current_click)
 
-        self.screen.blit(highlight, (self.current_click[0] * View.SQSIZE, self.current_click[1] * View.SQSIZE))
+        self.screen.blit(highlight, (self.current_click[0] * View.SIZE, self.current_click[1] * View.SIZE))
         for move in self.gamemodel.moves:
             if cords == move.split(":")[0]:
                 self.screen.blit(
-                    highlight, (int(move.split(":")[1][0]) * View.SQSIZE, int(move.split(":")[1][1]) * View.SQSIZE)
+                    highlight, (int(move.split(":")[1][0]) * View.SIZE, int(move.split(":")[1][1]) * View.SIZE)
                 )
 
     def load_images(self) -> None:
@@ -101,8 +98,7 @@ class View:
 
     def create_highlight(self, color: str) -> pygame.Surface:
         """Create a highlight pygame object"""
-        # pylint: disable=no-self-use
-        highlight = pygame.Surface((View.SQSIZE, View.SQSIZE))
+        highlight = pygame.Surface((View.SIZE, View.SIZE))
         highlight.set_alpha(75)
         highlight.fill(pygame.Color(color))
 
@@ -112,6 +108,6 @@ class View:
         """Create and initialise a pygame instance"""
         pygame.init()
         pygame.display.set_caption("Chess Engine")
-        self.screen: pygame.Surface = pygame.display.set_mode((512, 512))
+        self.screen = pygame.display.set_mode((512, 512))
         self.load_images()
         return True

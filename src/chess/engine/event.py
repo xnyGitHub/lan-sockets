@@ -8,8 +8,10 @@ class Event:
 class TickEvent(Event):
     """Tick event"""
 
+
 class ThreadQuitEvent(Event):
     """Quit event from non-main thread"""
+
 
 class UpdateEvent(Event):
     """Used to update client side board"""
@@ -34,7 +36,7 @@ class QuitEvent(Event):
 class EventManager:
     """The Coordinator"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Constructor"""
 
         from weakref import WeakKeyDictionary
