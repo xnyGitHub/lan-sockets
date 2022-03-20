@@ -20,7 +20,7 @@ class Room:
         """Creates a room"""
         if room_name in self.game_rooms:
             raise RoomNameAlreadyTaken()
-        self.game_rooms[room_name] = Rooms(room_name)
+        self.game_rooms[room_name] = Rooms(room_name, Room.instance())  # type: ignore
 
     def join(self, room_name: str) -> "Rooms":
         """Join a room as a player"""
@@ -52,8 +52,9 @@ class Rooms:
     This rooms holds the GameEngine object and services the data sent by the user
     """
 
-    def __init__(self, room_name: str) -> None:
+    def __init__(self, room_name: str, rooms: Room) -> None:
         self.room_name: str = room_name
+        self.server_rooms: Room = rooms
         self.clients: dict = {"white": None, "black": None}
         self.game: GameEngine
         self.game_in_progress: bool = False
@@ -139,6 +140,7 @@ class Rooms:
                     self.game_in_progress = False
                     message = json.dumps({"action": "message", "payload": "You win!"})
                     client_address.send((message + "\0").encode())
+                    self.delete_room()
 
     def service_data(self, data: dict) -> None:
         """Service the data sent by the players"""
@@ -170,6 +172,9 @@ class Rooms:
             self.player_turn = "white"
         elif self.player_turn == "white":
             self.player_turn = "black"
+
+    def delete_room(self) -> None:
+        self.server_rooms.del_room(self.room_name)
 
 
 class RoomFull(Exception):
