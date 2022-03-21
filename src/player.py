@@ -174,7 +174,9 @@ Please enter your choice: """
             elif choice.upper() == "C":
                 choice = str(input("Enter room name: "))
                 self.join_room(choice)
-                break
+                self.sleep(1)
+                if self.initialised:
+                    break
             elif choice.upper() == "Q":
                 self.running = False
                 break
