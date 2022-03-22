@@ -22,7 +22,7 @@ class Room:
             raise RoomNameAlreadyTaken()
         self.game_rooms[room_name] = Rooms(room_name, Room.instance())  # type: ignore
 
-    def join(self, room_name: str) -> "Rooms":
+    def join(self, room_name: str, player_address: socket.socket) -> "Rooms":
         """Join a room as a player"""
         if room_name not in self.game_rooms:
             raise RoomNotFound()
@@ -30,6 +30,7 @@ class Room:
         if self.game_rooms[room_name].is_full():
             raise RoomFull()
 
+        self.game_rooms[room_name].join(player_address)
         return self.game_rooms[room_name]
 
     def get_all_rooms(self) -> Union[List[str], str]:
