@@ -43,7 +43,8 @@ class View:
             pygame.quit()
 
         if isinstance(event, ThreadQuitEvent):
-            pygame.event.post(pygame.event.Event(pygame.QUIT))
+            GameOver = pygame.event.Event(pygame.USEREVENT + 1)
+            pygame.event.post(GameOver)
 
     def render(self) -> None:
         """Render"""
