@@ -78,7 +78,7 @@ class Rooms:
 
             # Remove player that wants to leave
             if player_address == client_address:
-                print(color,client_address)
+                print(color, client_address)
                 self.clients[color] = None
 
             # Remove other player if game in progress
@@ -123,8 +123,6 @@ class Rooms:
 
             dumped = json.dumps(message)
             player.send((dumped).encode())
-
-
 
     def service_data(self, data: dict) -> None:
         """Service the data sent by the players"""

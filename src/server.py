@@ -40,11 +40,15 @@ class Socket:
                         self.running_threads.append(new_client)
 
             except KeyboardInterrupt:
-                for thr in self.running_threads:
-                    thr.set_event()
-                self.sock.close()
+                self.shutdown()
                 break
         print("Shutting down server")
+
+    def shutdown(self) -> None:
+        """Shutdown the server"""
+        for thr in self.running_threads:
+            thr.set_event()
+        self.sock.close()
 
 
 if __name__ == "__main__":

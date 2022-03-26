@@ -1,4 +1,4 @@
-"""Player module"""  # pylint: disable =no-self-use
+"""Player module"""  # pylint: disable =no-self-use,redefined-builtin
 import select
 import signal
 import socket
@@ -95,8 +95,9 @@ class Player:
         self.send(message)
 
         data = self.socket.recv(1024)
-        message = json.loads(data)
-        print(message["payload"])
+        response = json.loads(data)
+        response_message = response["payload"]
+        print(response_message)
 
     def join_room(self, room_name: str) -> None:
         """Join a room"""
@@ -112,8 +113,9 @@ class Player:
         self.send(message)
 
         data = self.socket.recv(1024)
-        message = json.loads(data)
-        print(message["payload"])
+        response = json.loads(data)
+        response_message = response["payload"]
+        print(response_message)
 
     def get_rooms(self) -> None:
         """Get a list of all room"""
@@ -121,8 +123,9 @@ class Player:
         self.send(message)
 
         data = self.socket.recv(1024)
-        message = json.loads(data)
-        print(message["payload"])
+        response = json.loads(data)
+        response_message = response["payload"]
+        print(response_message)
 
     def waiting_for_opponent(self) -> None:
         """Tell the server you are waiting in the room for an opponent"""
@@ -132,6 +135,8 @@ class Player:
         # No reponse from server
 
     def start_game(self, color: str) -> None:
+        """Start the game"""
+
         # While loop condition for threaded recieve
         self.event = threading.Event()
         game_thread = threading.Thread(target=self.recieve)

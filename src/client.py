@@ -62,12 +62,8 @@ class ThreadedClient(threading.Thread):
                 response["payload"] = "Room is full"
 
         elif data["action"] == "get_rooms":
-            try:
-                response["payload"] = self.server_room.get_all_rooms()
-                response["success"] = True
-            except Exception:
-                response["success"] = False
-                response["payload"] = "Could not retrieve rooms"
+            response["success"] = True
+            response["payload"] = self.server_room.get_all_rooms()
 
         elif data["action"] == "leave_room":
             if self.game_room is not None:
