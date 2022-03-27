@@ -2,7 +2,7 @@
 import socket
 import json
 import time
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Optional
 from src.game import GameEngine
 from src.utils import Singleton
 
@@ -58,7 +58,7 @@ class Rooms:
         self.room_name: str = room_name
         self.server_rooms: Room = rooms
         self.clients: dict = {"white": None, "black": None}
-        self.game: GameEngine
+        self.game: Optional[GameEngine] = None
         self.player_turn: str = "white"
         self.player_ready = 0
 
@@ -78,8 +78,8 @@ class Rooms:
 
             # Remove player that wants to leave
             if player_address == client_address:
-                print(color, client_address)
                 self.clients[color] = None
+                self.player_ready -= 1
 
             # Remove other player if game in progress
             if player_address != client_address and self.is_game_running():
