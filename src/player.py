@@ -21,8 +21,15 @@ class Player:
     """Player class"""
 
     def __init__(self, host: str, port: int) -> None:
+        # Connect to socket
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connect(host, port)
+        self.exit: bool = False
+
+        # Create thread that listens for server closure
+        self.server_lister_event = threading.Event()
+        self.server_lister_thread = threading.Thread(target=self.server_listener)
+        self.server_lister_thread.start()
 
         # Pygame related
         self.event: threading.Event
@@ -66,11 +73,27 @@ class Player:
 
                     data = self.socket.recv(4096)
                     if not data:
-                        print("\n Server shutdown")
+                        print("\nServer shutdown\nPress enter continue")
                         break
 
                     message = json.loads(data)
                     self.service_data(message)
+
+    def server_listener(self):
+        while not self.server_lister_event.is_set():
+            try:
+                readable, _, _ = select.select([self.socket], [], [], 1)
+            except OSError:
+                pass
+            for obj in readable:
+                if obj is self.socket:
+
+                    data = self.socket.recv(1024)
+                    if not data:
+                        print("\nServer shutdown\nPress enter continue")
+                        self.server_lister_event.set()
+                        self.exit = True
+                        break
 
     def service_data(self, data: dict) -> None:
         """Service the data sent from the server"""
@@ -164,8 +187,10 @@ class Player:
 ------------------
 Please enter your choice: """
             )
+            if self.exit is True:
+                sys.exit(0)
 
-            if choice.upper() == "A":
+            elif choice.upper() == "A":
                 choice = str(input("Enter room name: "))
                 self.create_room(choice)
 
@@ -216,7 +241,13 @@ Please enter your choice: """
                 print("Invalid option")
 
         print("Shutting down client...")
-        self.sleep(2.5)  # Let threads finish before closing socket
+
+        # Kill the server listener thread
+        if not self.server_lister_event.is_set():
+            self.server_lister_event.set()
+
+        # Let threads finish before closing socket
+        self.sleep(2.5)
         self.socket.close()
         print("Disconnected!")
 
