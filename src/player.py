@@ -12,9 +12,10 @@ from src.chess.engine.controller import Controller
 from src.chess.engine.event import EventManager, ThreadQuitEvent, UpdateEvent
 from src.chess.engine.game import GameEngine
 from src.chess.engine.view import View
-from src.utils import ctrlc_handler, flush_print_default
+from src.utils import ctrlc_handler, flush_print_default, socket_recv_errors
 
 print = flush_print_default(print)
+socket.socket.recv = socket_recv_errors(socket.socket.recv)
 
 
 class Player:
@@ -243,8 +244,8 @@ Please enter your choice: """
         print("Shutting down client...")
 
         # Kill the server listener thread
-        if not self.server_lister_event.is_set():
-            self.server_lister_event.set()
+        # if not self.server_lister_event.is_set():
+        #     self.server_lister_event.set()
 
         # Let threads finish before closing socket
         self.sleep(2.5)
