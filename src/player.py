@@ -158,7 +158,17 @@ class Player:
         data = self.socket.recv(1024)
         response = json.loads(data)
         response_message = response["payload"]
-        print(response_message)
+        
+        if not response_message:
+            print("No rooms have been created yet")
+            return
+        
+        for room_name, creator in response_message:
+            print(f"""Room name :{room_name}
+Creator: {creator}
+Player 1 (White): TBD
+Player 2 (Black): TBD
+---------------------""")
 
     def waiting_for_opponent(self) -> None:
         """Tell the server you are waiting in the room for an opponent"""

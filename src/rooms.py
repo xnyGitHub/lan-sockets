@@ -17,11 +17,11 @@ class Room:
     def __init__(self) -> None:
         self.game_rooms: Dict[str, "Rooms"] = {}
 
-    def create_room(self, room_name: str) -> None:
+    def create_room(self, room_name: str, room_creator: str) -> None:
         """Creates a room"""
         if room_name in self.game_rooms:
             raise RoomNameAlreadyTaken()
-        self.game_rooms[room_name] = Rooms(room_name, Room.instance())  # type: ignore
+        self.game_rooms[room_name] = Rooms(room_name, room_creator, Room.instance())  # type: ignore
 
     def join(self, room_name: str, player_address: socket.socket) -> "Rooms":
         """Join a room as a player"""
@@ -36,9 +36,13 @@ class Room:
 
     def get_all_rooms(self) -> Union[List[str], str]:
         """Get a list of all the rooms created"""
+        list = []
         if not self.game_rooms:
-            return "No Room created"
-        return list(self.game_rooms.keys())
+            return list
+        
+        for room_name, room_object in self.game_rooms.items():
+            list.append((room_name,room_object.get_creator()))
+        return list
 
     def del_room(self, room_id: str) -> None:
         """Delete a room"""
@@ -54,8 +58,9 @@ class Rooms:
     This rooms holds the GameEngine object and services the data sent by the user
     """
 
-    def __init__(self, room_name: str, rooms: Room) -> None:
+    def __init__(self, room_name: str, room_creator: str, rooms: Room) -> None:
         self.room_name: str = room_name
+        self.room_creator : str = room_creator
         self.server_rooms: Room = rooms
         self.clients: dict = {"white": None, "black": None}
         self.game: Optional[GameEngine] = None
@@ -157,7 +162,10 @@ class Rooms:
         if None in self.clients.values():
             return False
         return True
-
+    
+    def get_creator(self):
+        return self.room_creator
+    
     def switch_turns(self) -> None:
         """Switch the player turns after a move"""
         if self.player_turn == "black":

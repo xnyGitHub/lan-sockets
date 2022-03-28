@@ -50,7 +50,7 @@ class ThreadedClient(threading.Thread):
         elif data["action"] == "create":
             payload = data["payload"]
             try:
-                self.server_room.create_room(payload)
+                self.server_room.create_room(payload, self.username)
                 response["success"] = True
                 response["payload"] = "Room created"
             except RoomNameAlreadyTaken:
