@@ -63,18 +63,21 @@ class Rooms:
         self.room_creator : str = room_creator
         self.server_rooms: Room = rooms
         self.clients: dict = {"white": None, "black": None}
+        self.usernames: dict = {"white": None, "black": None}
         self.game: Optional[GameEngine] = None
         self.player_turn: str = "white"
         self.player_ready = 0
 
-    def join(self, player_address: socket.socket) -> None:
+    def join(self, player_address: socket.socket, username: str) -> None:
         """Join the room"""
 
         # Assign player ID
         if self.clients.get("white") is None:
             self.clients["white"] = player_address
+            self.clients['white'] = username
         else:
             self.clients["black"] = player_address
+            self.clients['black'] = username
 
     def leave(self, player_address: socket.socket) -> None:
         """Remove a player from a room"""
@@ -84,11 +87,13 @@ class Rooms:
             # Remove player that wants to leave
             if player_address == client_address:
                 self.clients[color] = None
+                self.usernames[color]= None
                 self.player_ready -= 1
 
             # Remove other player if game in progress
             if player_address != client_address and self.is_game_running():
                 self.clients[color] = None
+                self.usernames[color]= None
                 message = json.dumps({"action": "message", "payload": "You win!"})
                 client_address.send((message).encode())
                 self.delete_room()

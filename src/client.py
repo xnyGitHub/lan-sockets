@@ -60,7 +60,7 @@ class ThreadedClient(threading.Thread):
         elif data["action"] == "join":
             payload = data["payload"]
             try:
-                self.game_room = self.server_room.join(payload, self.client)
+                self.game_room = self.server_room.join(payload, self.client, self.username)
                 response["success"] = True
                 response["payload"] = f"Joined {payload}"
             except RoomNotFound:
