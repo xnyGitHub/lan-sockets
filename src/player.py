@@ -21,16 +21,16 @@ socket.socket.recv = socket_recv_errors(socket.socket.recv)
 class Player:
     """Player class"""
 
-    def __init__(self, host: str, port: int) -> None:
+    def __init__(self, host: str, port: int, username: str) -> None:
         # Connect to socket
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.connect(host, port)
+        self.connect(host, port, username)
         self.exit: bool = False
 
         # Create thread that listens for server closure
-        self.server_lister_event = threading.Event()
-        self.server_lister_thread = threading.Thread(target=self.server_listener)
-        self.server_lister_thread.start()
+        # self.server_lister_event = threading.Event()
+        # self.server_lister_thread = threading.Thread(target=self.server_listener)
+        # self.server_lister_thread.start()
 
         # Pygame related
         self.event: threading.Event
@@ -39,10 +39,19 @@ class Player:
         self.controller: Controller
         self.graphics: View
 
-    def connect(self, host: str, port: int) -> None:
+    def connect(self, host: str, port: int, username: str) -> None:
         """Connect to socket"""
         try:
             self.socket.connect((host, port))
+            message = json.dumps({"action": "username", "payload": username})
+            self.send(message)
+            
+            data = self.socket.recv(1024)
+            if not data:
+                sys.exit(0)
+            response =  json.loads(data)["payload"]
+            print(response)
+            
         except ConnectionRefusedError:
             print("Could not connect")
             sys.exit(0)
@@ -263,6 +272,9 @@ if __name__ == "__main__":
 
     if sys.platform == "win32":
         HOST = "192.168.0.13"
+    
 
-    player = Player(HOST, PORT)
+    username = input("Please enter your username: ")
+        
+    player = Player(HOST, PORT, username)
     player.start()
