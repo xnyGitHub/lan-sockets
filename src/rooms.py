@@ -148,6 +148,7 @@ class Rooms:
                 player_address = self.clients[color]
                 message = json.dumps({"action": "message", "payload": "'It's not your turn"})
                 player_address.send((message).encode())
+                return
 
         elif data["sub_action"] == "undo_move":
             self.game.undo_move()
