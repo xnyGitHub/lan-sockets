@@ -1,6 +1,7 @@
 """Util class"""
 from types import FrameType
 from typing import Callable, Type
+import sys
 
 
 def flush_print_default(func: Callable) -> Callable:
@@ -12,6 +13,18 @@ def flush_print_default(func: Callable) -> Callable:
 
     return wrapped
 
+def socket_recv_errors(func: Callable) -> Callable:
+    """Wrapper for common socket errors"""
+    socket = func
+
+    def wrapped(instance:Type,buffer_size: int) -> None:
+        try:
+            return socket(instance,buffer_size)
+        except ConnectionAbortedError:
+            print("The server is no longer online\nThe client will now exit")
+            sys.exit(0)
+
+    return wrapped
 
 # pylint: disable=unused-argument
 def ctrlc_handler(signum: int, frame: FrameType) -> None:

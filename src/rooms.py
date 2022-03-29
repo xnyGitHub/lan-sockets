@@ -1,7 +1,8 @@
 """Server rooms and room module"""
 import socket
 import json
-from typing import Dict, List, Union
+import time
+from typing import Dict, List, Union, Optional
 from src.game import GameEngine
 from src.utils import Singleton
 
@@ -16,13 +17,13 @@ class Room:
     def __init__(self) -> None:
         self.game_rooms: Dict[str, "Rooms"] = {}
 
-    def create_room(self, room_name: str) -> None:
+    def create_room(self, room_name: str, room_creator: str) -> None:
         """Creates a room"""
         if room_name in self.game_rooms:
             raise RoomNameAlreadyTaken()
-        self.game_rooms[room_name] = Rooms(room_name, Room.instance())  # type: ignore
+        self.game_rooms[room_name] = Rooms(room_name, room_creator, Room.instance())  # type: ignore
 
-    def join(self, room_name: str, player_address: socket.socket) -> "Rooms":
+    def join(self, room_name: str, player_address: socket.socket, username: str) -> "Rooms":
         """Join a room as a player"""
         if room_name not in self.game_rooms:
             raise RoomNotFound()
@@ -30,14 +31,18 @@ class Room:
         if self.game_rooms[room_name].is_full():
             raise RoomFull()
 
-        self.game_rooms[room_name].join(player_address)
+        self.game_rooms[room_name].join(player_address, username)
         return self.game_rooms[room_name]
 
     def get_all_rooms(self) -> Union[List[str], str]:
         """Get a list of all the rooms created"""
+        list = []
         if not self.game_rooms:
-            return "No Room created"
-        return list(self.game_rooms.keys())
+            return list
+        
+        for room_name, room_object in self.game_rooms.items():
+            list.append((room_name,room_object.get_creator(),room_object.get_players()))
+        return list
 
     def del_room(self, room_id: str) -> None:
         """Delete a room"""
@@ -53,50 +58,54 @@ class Rooms:
     This rooms holds the GameEngine object and services the data sent by the user
     """
 
-    def __init__(self, room_name: str, rooms: Room) -> None:
+    def __init__(self, room_name: str, room_creator: str, rooms: Room) -> None:
         self.room_name: str = room_name
+        self.room_creator : str = room_creator
         self.server_rooms: Room = rooms
         self.clients: dict = {"white": None, "black": None}
-        self.game: GameEngine
-        self.game_in_progress: bool = False
-        self.players: list = []
+        self.usernames: dict = {"white": None, "black": None}
+        self.game: Optional[GameEngine] = None
         self.player_turn: str = "white"
+        self.player_ready = 0
 
-    def join(self, player_address: socket.socket) -> None:
+    def join(self, player_address: socket.socket, username: str) -> None:
         """Join the room"""
 
-        # Check if room is full
-        if self.is_full():
-            raise RoomFull()
-
-        # Add player if room is not full
-        self.players.append(player_address)
-
-        # Assign player ID and send it to them
-        message = ""
+        # Assign player ID
         if self.clients.get("white") is None:
             self.clients["white"] = player_address
-            message = json.dumps({"action": "id", "payload": "white"})
+            self.usernames["white"] = username
         else:
             self.clients["black"] = player_address
-            message = json.dumps({"action": "id", "payload": "black"})
+            self.usernames["black"] = username
 
-        player_address.send((message + "\0").encode())
+    def leave(self, player_address: socket.socket) -> None:
+        """Remove a player from a room"""
 
-        # Start game if two players have connected
-        if self.is_full():
-            self.start_game()
-            self.send_players_gamestate()
+        for color, client_address in dict(self.clients).items():
+
+            # Remove player that wants to leave
+            if player_address == client_address:
+                self.clients[color] = None
+                self.usernames[color]= None
+                self.player_ready -= 1
+
+            # Remove other player if game in progress
+            if player_address != client_address and self.is_game_running():
+                self.clients[color] = None
+                self.usernames[color]= None
+                message = json.dumps({"action": "message", "payload": "You win!"})
+                client_address.send((message).encode())
+                self.delete_room()
 
     def start_game(self) -> None:
         """Start the game with two players join"""
-        self.game_in_progress = True
         self.game = GameEngine()
 
         # Send them a start payload which will be used to invoke pygame for the player
-        for address in self.clients.values():
-            message = json.dumps({"action": "game", "sub_action": "start"})
-            address.send((message + "\0").encode())
+        for color, address in self.clients.items():
+            message = json.dumps({"action": "start_game", "payload": color})
+            address.send((message).encode())
 
     def is_game_running(self) -> bool:
         """Check if the game enigne object has been created"""
@@ -111,8 +120,7 @@ class Rooms:
 
         new_board = self.game.get_board().tolist()  # type: ignore
         message: dict = {
-            "action": "game",
-            "sub_action": "update",
+            "action": "update",
             "payload": {"board": new_board, "moves": "", "move_log": self.game.get_move_log()},
         }
 
@@ -124,49 +132,49 @@ class Rooms:
                 message["payload"]["moves"] = self.game.get_white_moves()
 
             dumped = json.dumps(message)
-            player.send((dumped + "\0").encode())
-
-    def leave(self, player_address: socket.socket) -> None:
-        """Remove a player from a room"""
-        # Check if the play is in list of players
-        if player_address in self.players:
-            self.players.remove(player_address)
-
-            # Remove both players from client dictionary
-            for color, client_address in dict(self.clients).items():
-                if player_address == client_address:
-                    del self.clients[color]
-
-                if player_address != client_address and self.game_in_progress:
-                    self.game_in_progress = False
-                    message = json.dumps({"action": "message", "payload": "You win!"})
-                    client_address.send((message + "\0").encode())
-                    self.delete_room()
+            player.send((dumped).encode())
 
     def service_data(self, data: dict) -> None:
         """Service the data sent by the players"""
         if data["sub_action"] == "make_move":
+
             color = data["payload"]["color"]
             move = data["payload"]["move"]
+
             if color == self.player_turn:
                 self.game.make_move(move)
                 self.switch_turns()
             else:
                 player_address = self.clients[color]
                 message = json.dumps({"action": "message", "payload": "'It's not your turn"})
-                player_address.send((message + "\0").encode())
+                player_address.send((message).encode())
+                return
 
-        if data["sub_action"] == "undo_move":
+        elif data["sub_action"] == "undo_move":
             self.game.undo_move()
+
+        elif data["sub_action"] == "waiting":
+            self.player_ready += 1
+            if self.player_ready == 2:
+                self.start_game()
+                time.sleep(1)
+            else:
+                return
 
         self.send_players_gamestate()
 
     def is_full(self) -> bool:
         """Check if room is full"""
-        if len(self.players) == 2:
-            return True
-        return False
-
+        if None in self.clients.values():
+            return False
+        return True
+    
+    def get_creator(self):
+        return self.room_creator
+    
+    def get_players(self):
+        return self.usernames
+    
     def switch_turns(self) -> None:
         """Switch the player turns after a move"""
         if self.player_turn == "black":
@@ -175,6 +183,7 @@ class Rooms:
             self.player_turn = "black"
 
     def delete_room(self) -> None:
+        """Delete the room"""
         self.server_rooms.del_room(self.room_name)
 
 

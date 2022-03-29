@@ -3,6 +3,7 @@ import json
 import select
 import socket
 import threading
+from typing import Optional
 
 from src.rooms import Room, RoomFull, RoomNameAlreadyTaken, RoomNotFound, Rooms
 
@@ -16,6 +17,7 @@ class ThreadedClient(threading.Thread):
         self.client: socket.socket = client
         self.server_room: Room = room
         self.game_room: Rooms
+        self.username:  Optional[str] = None
 
     def run(self) -> None:
         """Main function for threaded client"""
@@ -29,52 +31,64 @@ class ThreadedClient(threading.Thread):
                         self.set_event()
                         break
 
-                    strings = data.split(b"\0")
-                    for msg in strings:
-                        if msg != b"":
-                            message = json.loads(msg)
-                            self.service_data(message)
+                message = json.loads(data)
+                self.service_data(message)
 
         print(f"{self.client.getsockname()[0]} has disconnected")
 
     def service_data(self, data: dict) -> None:
         """Parse the user data and service it accordingly"""
-        message: dict = {"action": "message", "payload": ""}
+        response: dict = {"success": None, "payload": {}}
+        
+        if data["action"] == "username":
+            username = data["payload"]
+            self.username = username
+            
+            response["success"] = True
+            response["payload"] = "Username set"
 
-        if data["action"] == "create":
+        elif data["action"] == "create":
             payload = data["payload"]
             try:
-                self.server_room.create_room(payload)
-                message["payload"] = f"{payload} created"
+                self.server_room.create_room(payload, self.username)
+                response["success"] = True
+                response["payload"] = "Room created"
             except RoomNameAlreadyTaken:
-                message["payload"] = "Error: Room name is already taken"
+                response["success"] = False
+                response["payload"] = "Room name is already taken"
 
-        if data["action"] == "join":
+        elif data["action"] == "join":
             payload = data["payload"]
             try:
-                self.game_room = self.server_room.join(payload,self.client)
-                message["payload"] = f"Joined {payload}"
+                self.game_room = self.server_room.join(payload, self.client, self.username)
+                response["success"] = True
+                response["payload"] = f"Joined {payload}"
             except RoomNotFound:
-                message["payload"] = "Error: Room not found"
+                response["success"] = False
+                response["payload"] = "Room not found"
             except RoomFull:
-                message["payload"] = "Error: Room is full"
+                response["success"] = False
+                response["payload"] = "Room is full"
 
-        if data["action"] == "get_rooms":
-            message["payload"] = self.server_room.get_all_rooms()
+        elif data["action"] == "get_rooms":
+            response["success"] = True
+            response["payload"] = self.server_room.get_all_rooms()
 
-        if data["action"] == "leave_room":
-            if self.game_room is None:
-                message["payload"] = "You aren't in a room"
-            else:
+        elif data["action"] == "leave_room":
+            if self.game_room is not None:
                 self.game_room.leave(self.client)
                 self.game_room = None  # type: ignore
-                message["payload"] = "You left the room"
+                response["success"] = True
+                response["payload"] = "You left the room"
+            else:
+                response["success"] = False
+                response["payload"] = "You aren't in a room"
 
-        if data["action"] == "game":
+        elif data["action"] == "game":
             self.game_room.service_data(data)
             return
 
-        self.client.send((json.dumps(message) + "\0").encode())
+        self.client.send((json.dumps(response)).encode())
 
     def set_event(self) -> None:
         """Stop the thread"""

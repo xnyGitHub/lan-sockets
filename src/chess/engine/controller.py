@@ -33,6 +33,9 @@ class Controller:
                     self.event_manager.post(QuitEvent())
                     self.leave_room()
 
+                if event.type == pygame.USEREVENT + 1:
+                    self.event_manager.post(QuitEvent())
+
                 if event.type == pygame.MOUSEBUTTONDOWN:
 
                     col, row = pygame.mouse.get_pos()
