@@ -27,11 +27,6 @@ class Player:
         self.connect(host, port, username)
         self.exit: bool = False
 
-        # Create thread that listens for server closure
-        # self.server_lister_event = threading.Event()
-        # self.server_lister_thread = threading.Thread(target=self.server_listener)
-        # self.server_lister_thread.start()
-
         # Pygame related
         self.event: threading.Event
         self.event_manager: EventManager
@@ -88,22 +83,6 @@ class Player:
 
                     message = json.loads(data)
                     self.service_data(message)
-
-    def server_listener(self):
-        while not self.server_lister_event.is_set():
-            try:
-                readable, _, _ = select.select([self.socket], [], [], 1)
-            except OSError:
-                pass
-            for obj in readable:
-                if obj is self.socket:
-
-                    data = self.socket.recv(1024)
-                    if not data:
-                        print("\nServer shutdown\nPress enter continue")
-                        self.server_lister_event.set()
-                        self.exit = True
-                        break
 
     def service_data(self, data: dict) -> None:
         """Service the data sent from the server"""
@@ -261,11 +240,6 @@ Please enter your choice: """
                 print("Invalid option")
 
         print("Shutting down client...")
-
-        # Kill the server listener thread
-        # if not self.server_lister_event.is_set():
-        #     self.server_lister_event.set()
-
         # Let threads finish before closing socket
         self.sleep(2.5)
         self.socket.close()
