@@ -163,12 +163,12 @@ class Player:
             print("No rooms have been created yet")
             return
         
-        for room_name, creator in response_message:
-            print(f"""Room name :{room_name}
+        for room_name, creator, players in response_message:
+            print(f"""
+Room name: {room_name}
 Creator: {creator}
-Player 1 (White): TBD
-Player 2 (Black): TBD
----------------------""")
+White - {players['white']} | vs | {players['black']} - Black
+""")
 
     def waiting_for_opponent(self) -> None:
         """Tell the server you are waiting in the room for an opponent"""

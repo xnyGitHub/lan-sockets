@@ -23,7 +23,7 @@ class Room:
             raise RoomNameAlreadyTaken()
         self.game_rooms[room_name] = Rooms(room_name, room_creator, Room.instance())  # type: ignore
 
-    def join(self, room_name: str, player_address: socket.socket) -> "Rooms":
+    def join(self, room_name: str, player_address: socket.socket, username: str) -> "Rooms":
         """Join a room as a player"""
         if room_name not in self.game_rooms:
             raise RoomNotFound()
@@ -31,7 +31,7 @@ class Room:
         if self.game_rooms[room_name].is_full():
             raise RoomFull()
 
-        self.game_rooms[room_name].join(player_address)
+        self.game_rooms[room_name].join(player_address, username)
         return self.game_rooms[room_name]
 
     def get_all_rooms(self) -> Union[List[str], str]:
@@ -41,7 +41,7 @@ class Room:
             return list
         
         for room_name, room_object in self.game_rooms.items():
-            list.append((room_name,room_object.get_creator()))
+            list.append((room_name,room_object.get_creator(),room_object.get_players()))
         return list
 
     def del_room(self, room_id: str) -> None:
@@ -74,10 +74,10 @@ class Rooms:
         # Assign player ID
         if self.clients.get("white") is None:
             self.clients["white"] = player_address
-            self.clients['white'] = username
+            self.usernames["white"] = username
         else:
             self.clients["black"] = player_address
-            self.clients['black'] = username
+            self.usernames["black"] = username
 
     def leave(self, player_address: socket.socket) -> None:
         """Remove a player from a room"""
@@ -170,6 +170,9 @@ class Rooms:
     
     def get_creator(self):
         return self.room_creator
+    
+    def get_players(self):
+        return self.usernames
     
     def switch_turns(self) -> None:
         """Switch the player turns after a move"""
