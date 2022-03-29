@@ -15,7 +15,7 @@ from src.chess.engine.view import View
 from src.utils import ctrlc_handler, flush_print_default, socket_recv_errors
 
 print = flush_print_default(print)
-socket.socket.recv = socket_recv_errors(socket.socket.recv)
+# socket.socket.recv = socket_recv_errors(socket.socket.recv)
 
 
 class Player:
@@ -78,7 +78,10 @@ class Player:
 
                     data = self.socket.recv(4096)
                     if not data:
-                        print("\nServer shutdown\nPress enter continue")
+                        self.exit = True
+                        self.event_manager.post(ThreadQuitEvent())
+                        self.event.set()
+                        print("Server shutdown")
                         break
 
                     message = json.loads(data)
@@ -107,6 +110,11 @@ class Player:
         self.send(message)
 
         data = self.socket.recv(1024)
+        if not data:
+            print("Server no longer online, the client will now exit")
+            self.exit = True
+            return
+        
         response = json.loads(data)
         response_message = response["payload"]
         print(response_message)
@@ -125,6 +133,11 @@ class Player:
         self.send(message)
 
         data = self.socket.recv(1024)
+        if not data:
+            print("Server no longer online, the client will now exit")
+            self.exit = True
+            return
+        
         response = json.loads(data)
         response_message = response["payload"]
         print(response_message)
@@ -135,6 +148,11 @@ class Player:
         self.send(message)
 
         data = self.socket.recv(1024)
+        if not data:
+            print("Server no longer online, the client will now exit")
+            self.exit = True
+            return
+        
         response = json.loads(data)
         response_message = response["payload"]
         
@@ -158,6 +176,8 @@ White - {players['white']} | vs | {players['black']} - Black
 
     def start_game(self, color: str) -> None:
         """Start the game"""
+        
+        print(f"The game has started. You will play as {color}")
 
         # While loop condition for threaded recieve
         self.event = threading.Event()
@@ -168,15 +188,15 @@ White - {players['white']} | vs | {players['black']} - Black
         self.initialise_pygame()
         self.gamemodel.set_color(color)
         self.gamemodel.run()
-
         # Stop the thread
-        self.event.set()
+        if not self.event.is_set():
+            self.event.set()
         print("Game has concluded.")
 
     def start(self) -> None:
         """Start the server"""
         print("Connected to server")
-        while True:
+        while not self.exit:
             choice = input(
                 """------------------
 | A: Create Room |
@@ -186,10 +206,8 @@ White - {players['white']} | vs | {players['black']} - Black
 ------------------
 Please enter your choice: """
             )
-            if self.exit is True:
-                sys.exit(0)
 
-            elif choice.upper() == "A":
+            if choice.upper() == "A":
                 choice = str(input("Enter room name: "))
                 self.create_room(choice)
 
@@ -203,8 +221,12 @@ Please enter your choice: """
 
                 # Wait for response
                 data = self.socket.recv(1024)
+                if not data:
+                    print("Server no longer online, the client will now exit")
+                    self.exit = True
+                    break
+                
                 response = json.loads(data)
-
                 # Do something
                 if response["success"] is False:
                     print(response["payload"])
@@ -223,6 +245,11 @@ Please enter your choice: """
                             if self.socket in readable and waiting_in_lobby:
 
                                 data = self.socket.recv(1024)
+                                if not data:
+                                    print("Server has shutdown")
+                                    self.exit = True
+                                    break
+                                
                                 response = json.loads(data)
                                 if response["action"] == "start_game":
                                     waiting_in_lobby = False
