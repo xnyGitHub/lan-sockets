@@ -3,6 +3,7 @@ import json
 import select
 import socket
 import threading
+from typing import Optional
 
 from src.rooms import Room, RoomFull, RoomNameAlreadyTaken, RoomNotFound, Rooms
 
@@ -16,6 +17,7 @@ class ThreadedClient(threading.Thread):
         self.client: socket.socket = client
         self.server_room: Room = room
         self.game_room: Rooms
+        self.username:  Optional[str] = None
 
     def run(self) -> None:
         """Main function for threaded client"""
@@ -37,11 +39,18 @@ class ThreadedClient(threading.Thread):
     def service_data(self, data: dict) -> None:
         """Parse the user data and service it accordingly"""
         response: dict = {"success": None, "payload": {}}
+        
+        if data["action"] == "username":
+            username = data["payload"]
+            self.username = username
+            
+            response["success"] = True
+            response["payload"] = "Username set"
 
-        if data["action"] == "create":
+        elif data["action"] == "create":
             payload = data["payload"]
             try:
-                self.server_room.create_room(payload)
+                self.server_room.create_room(payload, self.username)
                 response["success"] = True
                 response["payload"] = "Room created"
             except RoomNameAlreadyTaken:
@@ -51,7 +60,7 @@ class ThreadedClient(threading.Thread):
         elif data["action"] == "join":
             payload = data["payload"]
             try:
-                self.game_room = self.server_room.join(payload, self.client)
+                self.game_room = self.server_room.join(payload, self.client, self.username)
                 response["success"] = True
                 response["payload"] = f"Joined {payload}"
             except RoomNotFound:
