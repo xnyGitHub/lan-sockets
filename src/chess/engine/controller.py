@@ -53,6 +53,8 @@ class Controller:
                         move = self.convert_click_to_str()
 
                         if move in self.model.moves:
+                            if self.model.color == "black":
+                                move = self.invert_move(move)
                             self.make_move(move)
                         self.reset_click()
 
@@ -74,6 +76,14 @@ class Controller:
         move = f"{start_col}{start_row}:{end_col}{end_row}"
         return move
 
+    def invert_move(self, move: str) -> str:
+        sr, sc, _ , er, ec = move
+        sr = str(abs(int(sr)-7))
+        sc = str(abs(int(sc)-7))
+        er = str(abs(int(er)-7))
+        ec = str(abs(int(ec)-7))
+        
+        return f"{sr}{sc}:{er}{ec}"
     def reset_click(self) -> None:
         """Reset the click variables"""
         self.square_selected = ()
