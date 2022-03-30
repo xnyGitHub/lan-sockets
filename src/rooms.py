@@ -2,7 +2,7 @@
 import socket
 import json
 import time
-from typing import Dict
+from typing import Dict, Optional
 from src.game import GameEngine
 from src.utils import Singleton
 
@@ -64,7 +64,7 @@ class Rooms:
         self.server_rooms: Room = rooms
         self.clients: dict = {"white": None, "black": None}
         self.usernames: dict = {"white": None, "black": None}
-        self.game: GameEngine
+        self.game: Optional[GameEngine] = None
         self.player_turn: str = "white"
         self.player_ready = 0
 
