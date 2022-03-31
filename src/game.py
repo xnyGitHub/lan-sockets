@@ -18,7 +18,7 @@ class GameEngine:
         """Default board constructor"""
         self.board: np.ndarray = np.array(
             [
-                ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bB"],
+                ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
                 ["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"],
                 ["--", "--", "--", "--", "--", "--", "--", "--"],
                 ["--", "--", "--", "--", "--", "--", "--", "--"],

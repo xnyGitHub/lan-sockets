@@ -40,13 +40,13 @@ class Player:
             self.socket.connect((host, port))
             message = json.dumps({"action": "username", "payload": username})
             self.send(message)
-            
+
             data = self.socket.recv(1024)
             if not data:
                 sys.exit(0)
-            response =  json.loads(data)["payload"]
+            response = json.loads(data)["payload"]
             print(response)
-            
+
         except ConnectionRefusedError:
             print("Could not connect")
             sys.exit(0)
@@ -114,7 +114,7 @@ class Player:
             print("Server no longer online, the client will now exit")
             self.exit = True
             return
-        
+
         response = json.loads(data)
         response_message = response["payload"]
         print(response_message)
@@ -137,7 +137,7 @@ class Player:
             print("Server no longer online, the client will now exit")
             self.exit = True
             return
-        
+
         response = json.loads(data)
         response_message = response["payload"]
         print(response_message)
@@ -152,20 +152,22 @@ class Player:
             print("Server no longer online, the client will now exit")
             self.exit = True
             return
-        
+
         response = json.loads(data)
         response_message = response["payload"]
-        
+
         if not response_message:
             print("No rooms have been created yet")
             return
-        
+
         for room_name, creator, players in response_message:
-            print(f"""
+            print(
+                f"""
 Room name: {room_name}
 Creator: {creator}
 White - {players['white']} | vs | {players['black']} - Black
-""")
+"""
+            )
 
     def waiting_for_opponent(self) -> None:
         """Tell the server you are waiting in the room for an opponent"""
@@ -176,7 +178,7 @@ White - {players['white']} | vs | {players['black']} - Black
 
     def start_game(self, color: str) -> None:
         """Start the game"""
-        
+
         print(f"The game has started. You will play as {color}")
 
         # While loop condition for threaded recieve
@@ -225,7 +227,7 @@ Please enter your choice: """
                     print("Server no longer online, the client will now exit")
                     self.exit = True
                     break
-                
+
                 response = json.loads(data)
                 # Do something
                 if response["success"] is False:
@@ -249,7 +251,7 @@ Please enter your choice: """
                                     print("Server has shutdown")
                                     self.exit = True
                                     break
-                                
+
                                 response = json.loads(data)
                                 if response["action"] == "start_game":
                                     waiting_in_lobby = False
@@ -279,13 +281,12 @@ if __name__ == "__main__":
 
     if sys.platform == "darwin":
         HOST = "192.168.0.60"
-        signal.signal(signal.SIGTSTP, ctrlc_handler)  # Detect if  Ctrl+Z was pressed
+        signal.signal(signal.SIGTSTP, ctrlc_handler)  # type: ignore
 
     if sys.platform == "win32":
         HOST = "192.168.0.13"
-    
 
-    username = input("Please enter your username: ")
-        
-    player = Player(HOST, PORT, username)
+    user_input = input("Please enter your username: ")
+
+    player = Player(HOST, PORT, user_input)
     player.start()

@@ -57,7 +57,7 @@ if __name__ == "__main__":
 
     if sys.platform == "darwin":
         HOST = "192.168.0.60"
-        signal.signal(signal.SIGTSTP, ctrlc_handler)  # Detect if  Ctrl+Z was pressed
+        signal.signal(signal.SIGTSTP, ctrlc_handler)  # type: ignore
 
     if sys.platform == "win32":
         HOST = "192.168.0.13"

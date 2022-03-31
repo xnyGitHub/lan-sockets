@@ -2,7 +2,7 @@
 import socket
 import json
 import time
-from typing import Dict, List, Union, Optional
+from typing import Dict, Optional
 from src.game import GameEngine
 from src.utils import Singleton
 
@@ -34,15 +34,16 @@ class Room:
         self.game_rooms[room_name].join(player_address, username)
         return self.game_rooms[room_name]
 
-    def get_all_rooms(self) -> Union[List[str], str]:
+    def get_all_rooms(self) -> list:
         """Get a list of all the rooms created"""
-        list = []
+        room_list: list = []
         if not self.game_rooms:
-            return list
+            return room_list
+
 
         for room_name, room_object in self.game_rooms.items():
-            list.append((room_name,room_object.get_creator(),room_object.get_players()))
-        return list
+            room_list.append((room_name, room_object.get_creator(), room_object.get_players()))
+        return room_list
 
     def del_room(self, room_id: str) -> None:
         """Delete a room"""
@@ -60,7 +61,7 @@ class Rooms:
 
     def __init__(self, room_name: str, room_creator: str, rooms: Room) -> None:
         self.room_name: str = room_name
-        self.room_creator : str = room_creator
+        self.room_creator: str = room_creator
         self.server_rooms: Room = rooms
         self.clients: dict = {"white": None, "black": None}
         self.usernames: dict = {"white": None, "black": None}
@@ -87,13 +88,13 @@ class Rooms:
             # Remove player that wants to leave
             if player_address == client_address:
                 self.clients[color] = None
-                self.usernames[color]= None
+                self.usernames[color] = None
                 self.player_ready -= 1
 
             # Remove other player if game in progress
             if player_address != client_address and self.is_game_running():
                 self.clients[color] = None
-                self.usernames[color]= None
+                self.usernames[color] = None
                 message = json.dumps({"action": "message", "payload": "You win!"})
                 client_address.send((message).encode())
                 self.delete_room()
@@ -170,10 +171,12 @@ class Rooms:
             return False
         return True
 
-    def get_creator(self):
+    def get_creator(self) -> str:
+        """Return creator of room username"""
         return self.room_creator
 
-    def get_players(self):
+    def get_players(self) -> dict:
+        """Return player usernames"""
         return self.usernames
 
     def switch_turns(self) -> None:

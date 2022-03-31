@@ -1,4 +1,6 @@
 """Model class for MVC"""
+import typing
+import numpy as np
 from src.chess.engine.event import EventManager, QuitEvent, TickEvent, UpdateEvent, Event
 
 
@@ -48,8 +50,25 @@ class GameEngine:
     def update(self, board: list, moves: list, move_log: list) -> None:
         """Update the client gamestate when socket sends new gamestate"""
         self.board = board
-        self.moves = moves
         self.move_log = move_log
+
+        if self.color == "black":
+            self.board = np.rot90(self.board, 2)
+            self.moves = list(map(self.invert_move, moves))
+        else:
+            self.moves = moves
+
+    @typing.no_type_check
+    def invert_move(self, move: str) -> str:
+        """Invert black players click"""
+        start_row, start_col, _, end_row, end_col = move
+
+        start_row = str(abs(int(start_row) - 7))
+        start_col = str(abs(int(start_col) - 7))
+        end_row = str(abs(int(end_row) - 7))
+        end_col = str(abs(int(end_col) - 7))
+
+        return f"{start_row}{start_col}:{end_row}{end_col}"
 
     def run(self) -> None:
         """Starts the game engine loop"""

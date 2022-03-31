@@ -1,10 +1,12 @@
 """Controller class for Player MVC"""  # pylint: disable=no-member,unbalanced-tuple-unpacking
 import os
 from typing import Callable
+import typing
 import json
 import pygame
 from src.chess.engine.event import Event, EventManager, Highlight, QuitEvent, TickEvent
 from src.chess.engine.game import GameEngine
+
 
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
 
@@ -53,6 +55,8 @@ class Controller:
                         move = self.convert_click_to_str()
 
                         if move in self.model.moves:
+                            if self.model.color == "black":
+                                move = self.invert_move(move)
                             self.make_move(move)
                         self.reset_click()
 
@@ -73,6 +77,18 @@ class Controller:
         (start_col, start_row), (end_col, end_row) = self.player_clicks
         move = f"{start_col}{start_row}:{end_col}{end_row}"
         return move
+
+    @typing.no_type_check
+    def invert_move(self, move: str) -> str:
+        """Invert black players click"""
+        start_row, start_col, _, end_row, end_col = move
+
+        start_row = str(abs(int(start_row) - 7))
+        start_col = str(abs(int(start_col) - 7))
+        end_row = str(abs(int(end_row) - 7))
+        end_col = str(abs(int(end_col) - 7))
+
+        return f"{start_row}{start_col}:{end_row}{end_col}"
 
     def reset_click(self) -> None:
         """Reset the click variables"""
