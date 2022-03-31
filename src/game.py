@@ -9,8 +9,7 @@ class GameEngine:
     def __init__(self) -> None:
         """Create new gamestate"""
 
-        self.player_turn = True
-
+        self.player_turn = "white"
         self.move_log: list = []
         self.white_moves: list = []
         self.black_moves: list = []
@@ -43,15 +42,20 @@ class GameEngine:
         start_col, start_row = [int(x) for x in start_cords]
         end_col, end_row = [int(x) for x in end_cords]
 
+        # Generate move data
+        piece_moved = self.board[start_row][start_col]
+        piece_captured = self.board[end_row][end_col]
+
+        # Add to move log
+        move_data = f"{start_cords}:{end_cords}:{piece_moved}:{piece_captured}"
+        self.move_log.append(move_data)
+
         # Make the move
         self.board[end_row][end_col] = self.board[start_row][start_col]
         self.board[start_row][start_col] = "--"
-        self.player_turn = not self.player_turn
 
-        # Add the move log and regen the moves
-        move_data = f"{start_cords}:{end_cords}:{self.board[start_row][start_col]}:{self.board[end_row][end_col]}"
-        self.move_log.append(move_data)
-        self.generate_all_moves()
+        # Switch turns
+        self.switch_turns()
 
     def undo_move(self) -> None:
         """
@@ -61,7 +65,7 @@ class GameEngine:
 
         # Get latest move and parse it
         move = self.move_log[-1]
-        start_cords, end_cords, piece_captured, piece_moved = move.split(":")
+        start_cords, end_cords, piece_moved, piece_captured = move.split(":")
         start_col, start_row = [int(x) for x in start_cords]
         end_col, end_row = [int(x) for x in end_cords]
 
@@ -69,9 +73,16 @@ class GameEngine:
         self.board[start_row][start_col] = piece_moved
         self.board[end_row][end_col] = piece_captured
 
-        self.player_turn = not self.player_turn
+        # Remove move from move log
         self.move_log.pop()  # Remove the undone move from list of moves
-        self.generate_all_moves()  # Regen all the moves
+        self.switch_turns()
+
+    def switch_turns(self) -> None:
+        """Switch player turns"""
+        if self.player_turn == "black":
+            self.player_turn = "white"
+        elif self.player_turn == "white":
+            self.player_turn = "black"
 
     def get_white_moves(self) -> List[str]:
         """Return list of white moves"""
@@ -88,6 +99,11 @@ class GameEngine:
     def get_move_log(self) -> List[str]:
         """Return the move log"""
         return self.move_log
+
+    def get_king_location(self, king_piece: str) -> str:
+        """Return the kings location for the piece passed in"""
+        row, col = np.where(self.board == king_piece)
+        return f"{col[0]}{row[0]}"
 
     def piece_movemovents(self) -> dict:
         """Piece movements helper function"""
@@ -128,6 +144,11 @@ class GameEngine:
         continuous: bool = piece_move_info["continous"]
         return movements, continuous
 
+    def get_moves(self) -> None:
+        """Call the functions that will generate all legal moves"""
+        self.generate_all_moves()
+        self.filter_invalid_moves()
+
     def generate_all_moves(self) -> None:
         """Function that calls get moves"""
         # Clear each time otherwise we end up with duplicates
@@ -149,6 +170,40 @@ class GameEngine:
                     self.get_pawn_moves(index, array, chess_square)
                 else:
                     self.get_non_pawn_moves(index, array, chess_square)
+
+    def filter_invalid_moves(self) -> None:
+        """Remove illegal moves"""
+        black_invalid = []  # This will hold in valid moves
+        white_invalid = []
+
+        if self.player_turn == "white":
+            for white_move in self.white_moves:
+                self.make_move(white_move)
+                self.generate_all_moves()
+                for opponent_move in self.black_moves:
+                    white_king_location = self.get_king_location("wK")
+                    if white_king_location in opponent_move:
+                        white_invalid.append(white_move)
+                        break
+                self.undo_move()
+                self.generate_all_moves()
+        else:
+            for black_move in self.black_moves:
+                self.make_move(black_move)
+                self.generate_all_moves()
+                for opponent_move in self.white_moves:
+                    black_king_location = self.get_king_location("bK")
+                    if black_king_location in opponent_move:
+                        black_invalid.append(black_move)
+                        break
+                self.undo_move()
+                self.generate_all_moves()
+
+        self.black_moves = list(set(self.black_moves) - set(black_invalid))
+        self.white_moves = list(set(self.white_moves) - set(white_invalid))
+
+        print(f"Legal black {self.black_moves}")
+        print(f"Legal white {self.white_moves}")
 
     def get_non_pawn_moves(self, index: Tuple[int, int], array: list, chess_square: str) -> None:
         """Generate non-pawn moves here"""

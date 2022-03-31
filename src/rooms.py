@@ -40,6 +40,7 @@ class Room:
         if not self.game_rooms:
             return room_list
 
+
         for room_name, room_object in self.game_rooms.items():
             room_list.append((room_name, room_object.get_creator(), room_object.get_players()))
         return room_list
@@ -143,6 +144,7 @@ class Rooms:
 
             if color == self.player_turn:
                 self.game.make_move(move)
+                self.game.get_moves()
                 self.switch_turns()
             else:
                 player_address = self.clients[color]
