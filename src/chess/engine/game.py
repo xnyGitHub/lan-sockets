@@ -63,7 +63,6 @@ class GameEngine:
         """Invert black players click"""
         movetype = move[-1]
         if movetype in ("N", "T"):
-            print(move)
             start_col, start_row, _, end_col, end_row, _, move_type = move
 
             start_col = str(abs(int(start_col) - 7))
