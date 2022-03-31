@@ -112,9 +112,9 @@ class View:
             king_loc = self.invert_check_highlight(king_loc)
             attacking_pieces = list(map(self.invert_check_highlight, attacking_pieces))
 
-        self.screen.blit(red_highlight, (int(king_loc[0]) * View.SIZE, int(king_loc[1]) * View.SIZE))
+        self.screen.blit(green_highlight, (int(king_loc[0]) * View.SIZE, int(king_loc[1]) * View.SIZE))
         for pieces in attacking_pieces:
-            self.screen.blit(green_highlight, (int(pieces[0]) * View.SIZE, int(pieces[1]) * View.SIZE))
+            self.screen.blit(red_highlight, (int(pieces[0]) * View.SIZE, int(pieces[1]) * View.SIZE))
 
 
     def load_images(self) -> None:
