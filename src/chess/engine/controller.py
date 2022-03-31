@@ -54,7 +54,9 @@ class Controller:
                     if len(self.player_clicks) == 2:
                         move = self.convert_click_to_str()
 
-                        if move in self.model.moves:
+                        result = [valid_move for valid_move in self.model.moves if move in valid_move]
+                        if result:
+                            move = result[0]
                             if self.model.color == "black":
                                 move = self.invert_move(move)
                             self.make_move(move)
@@ -81,14 +83,14 @@ class Controller:
     @typing.no_type_check
     def invert_move(self, move: str) -> str:
         """Invert black players click"""
-        start_row, start_col, _, end_row, end_col = move
+        start_col, start_row, _, end_col, end_row, _, movetype = move
 
-        start_row = str(abs(int(start_row) - 7))
         start_col = str(abs(int(start_col) - 7))
-        end_row = str(abs(int(end_row) - 7))
+        start_row = str(abs(int(start_row) - 7))
         end_col = str(abs(int(end_col) - 7))
+        end_row = str(abs(int(end_row) - 7))
 
-        return f"{start_row}{start_col}:{end_row}{end_col}"
+        return f"{start_col}{start_row}:{end_col}{end_row}:{movetype}"
 
     def reset_click(self) -> None:
         """Reset the click variables"""
