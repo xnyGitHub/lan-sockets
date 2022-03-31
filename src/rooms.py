@@ -2,7 +2,7 @@
 import socket
 import json
 import time
-from typing import Dict, Optional
+from typing import Dict
 from src.game import GameEngine
 from src.utils import Singleton
 
@@ -40,7 +40,6 @@ class Room:
         if not self.game_rooms:
             return room_list
 
-
         for room_name, room_object in self.game_rooms.items():
             room_list.append((room_name, room_object.get_creator(), room_object.get_players()))
         return room_list
@@ -65,7 +64,7 @@ class Rooms:
         self.server_rooms: Room = rooms
         self.clients: dict = {"white": None, "black": None}
         self.usernames: dict = {"white": None, "black": None}
-        self.game: Optional[GameEngine] = None
+        self.game: GameEngine = None  # type: ignore
         self.player_turn: str = "white"
         self.player_ready = 0
 
