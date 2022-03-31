@@ -1,6 +1,7 @@
 """Game object"""
 # type: ignore
-from typing import Tuple, List
+from typing import Tuple, List, Union
+from unittest import result
 import numpy as np
 
 
@@ -142,6 +143,26 @@ class GameEngine:
         """Return the kings location for the piece passed in"""
         row, col = np.where(self.board == king_piece)
         return f"{col[0]}{row[0]}"
+
+    def get_check_status(self) -> list:
+
+        check_status: dict = {}
+
+        if self.player_turn == 'white':
+            white_king_location = self.get_king_location("wK")
+            results = [moves for moves in self.black_moves if white_king_location in moves]
+            if results:
+                check_status['king_location'] = white_king_location
+                check_status['attacking_pieces'] = results
+
+        if self.player_turn == 'black':
+            black_king_location = self.get_king_location("bK")
+            results = [moves for moves in self.white_moves if black_king_location in moves]
+            if results:
+                check_status['king_location'] = black_king_location
+                check_status['attacking_pieces'] = results
+
+        return check_status
 
     def piece_movemovents(self) -> dict:
         """Piece movements helper function"""
