@@ -39,7 +39,7 @@ class Room:
         list = []
         if not self.game_rooms:
             return list
-        
+
         for room_name, room_object in self.game_rooms.items():
             list.append((room_name,room_object.get_creator(),room_object.get_players()))
         return list
@@ -143,6 +143,7 @@ class Rooms:
 
             if color == self.player_turn:
                 self.game.make_move(move)
+                self.game.get_moves()
                 self.switch_turns()
             else:
                 player_address = self.clients[color]
@@ -168,13 +169,13 @@ class Rooms:
         if None in self.clients.values():
             return False
         return True
-    
+
     def get_creator(self):
         return self.room_creator
-    
+
     def get_players(self):
         return self.usernames
-    
+
     def switch_turns(self) -> None:
         """Switch the player turns after a move"""
         if self.player_turn == "black":
