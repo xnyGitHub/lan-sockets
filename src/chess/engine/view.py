@@ -108,6 +108,10 @@ class View:
         king_loc = self.check_status['king_location']
         attacking_pieces = self.check_status['attacking_pieces']
 
+        if self.gamemodel.color == 'black':
+            king_loc = self.invert_check_highlight(king_loc)
+            attacking_pieces = list(map(self.invert_check_highlight, attacking_pieces))
+
         self.screen.blit(red_highlight, (int(king_loc[0]) * View.SIZE, int(king_loc[1]) * View.SIZE))
         for pieces in attacking_pieces:
             self.screen.blit(green_highlight, (int(pieces[0]) * View.SIZE, int(pieces[1]) * View.SIZE))
@@ -128,6 +132,13 @@ class View:
         highlight.fill(pygame.Color(color))
 
         return highlight
+
+    def invert_check_highlight(self, cord: str) -> str:
+        start_col, start_row, *_ = cord
+
+        start_col = str(abs(int(start_col) - 7))
+        start_row = str(abs(int(start_row) - 7))
+        return f"{start_col}{start_row}"
 
     def initialise(self) -> bool:
         """Create and initialise a pygame instance"""
