@@ -2,7 +2,7 @@
 import typing
 import numpy as np
 from src.chess.engine.event import EventManager, QuitEvent, TickEvent, UpdateEvent, Event
-
+from src.utils import invert_move
 
 class GameEngine:
     """Holds the game state."""
@@ -54,21 +54,9 @@ class GameEngine:
 
         if self.color == "black":
             self.board = np.rot90(self.board, 2)  # type: ignore
-            self.moves = list(map(self.invert_move, moves))
+            self.moves = list(map(invert_move, moves))
         else:
             self.moves = moves
-
-    @typing.no_type_check
-    def invert_move(self, move: str) -> str:
-        """Invert black players click"""
-        new_string: str = ""
-        for letter in move:
-            if letter.isdigit():
-                inverse = str(abs(int(letter) - 7))
-                new_string += inverse
-            else:
-                new_string += letter
-        return new_string
 
     def run(self) -> None:
         """Starts the game engine loop"""

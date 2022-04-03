@@ -3,7 +3,7 @@ import os
 import pygame
 from src.chess.engine.event import EventManager, Event, QuitEvent, TickEvent, Highlight, ThreadQuitEvent, ViewUpdate
 from src.chess.engine.game import GameEngine
-from src.utils import flush_print_default
+from src.utils import flush_print_default, invert_move
 
 
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
@@ -111,8 +111,8 @@ class View:
         attacking_pieces = self.check_status["attacking_pieces"]
 
         if self.gamemodel.color == "black":
-            king_loc = self.invert_check_highlight(king_loc)
-            attacking_pieces = list(map(self.invert_check_highlight, attacking_pieces))
+            king_loc = invert_move(king_loc)
+            attacking_pieces = list(map(invert_move, attacking_pieces))
 
         self.screen.blit(green_highlight, (int(king_loc[0]) * View.SIZE, int(king_loc[1]) * View.SIZE))
         for pieces in attacking_pieces:
@@ -133,18 +133,6 @@ class View:
         highlight.fill(pygame.Color(color))
 
         return highlight
-
-    def invert_check_highlight(self, cord: str) -> str:
-        """Invert the function highlight_check() for black players pov"""
-        new_string: str = ""
-        for letter in cord:
-            if letter.isdigit():
-                reversed = str(abs(int(letter) - 7))
-                new_string += reversed
-            else:
-                new_string += letter
-
-        return new_string
 
     def initialise(self) -> bool:
         """Create and initialise a pygame instance"""

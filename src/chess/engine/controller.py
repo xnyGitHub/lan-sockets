@@ -6,6 +6,7 @@ import json
 import pygame
 from src.chess.engine.event import Event, EventManager, Highlight, QuitEvent, TickEvent
 from src.chess.engine.game import GameEngine
+from src.utils import invert_move
 
 
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
@@ -58,7 +59,7 @@ class Controller:
                         if result:
                             move = result[0]
                             if self.model.color == "black":
-                                move = self.invert_move(move)
+                                move = invert_move(move)
                             self.make_move(move)
                         self.reset_click()
 
@@ -79,18 +80,6 @@ class Controller:
         (start_col, start_row), (end_col, end_row) = self.player_clicks
         move = f"{start_col}{start_row}:{end_col}{end_row}"
         return move
-
-    @typing.no_type_check
-    def invert_move(self, move: str) -> str:
-        """Invert black players click"""
-        new_string: str = ""
-        for letter in move:
-            if letter.isdigit():
-                inverse = str(abs(int(letter) - 7))
-                new_string += inverse
-            else:
-                new_string += letter
-        return new_string
 
     def reset_click(self) -> None:
         """Reset the click variables"""

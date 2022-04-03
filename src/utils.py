@@ -34,6 +34,16 @@ def ctrlc_handler(signum: int, frame: FrameType) -> None:
     """Crtl+Z handler for mac"""
     print("Ctrl+Z pressed, but ignored, use Ctrl+C instead")
 
+def invert_move(move: str) -> str:
+        """Invert a move string for player black"""
+        new_string: str = ""
+        for letter in move:
+            if letter.isdigit():
+                reversed = str(abs(int(letter) - 7))
+                new_string += reversed
+            else:
+                new_string += letter
+        return new_string
 
 class Singleton:
     """
@@ -72,3 +82,5 @@ class Singleton:
 
     def __instancecheck__(self, inst: object) -> bool:
         return isinstance(inst, self._decorated)
+
+
