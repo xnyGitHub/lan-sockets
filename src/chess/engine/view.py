@@ -29,7 +29,7 @@ class View:
         self.images: dict = {}
         self.initialised: bool = self.initialise()
         self.current_click: tuple = (None, None)
-        self.check_status: dict = None # type: ignore
+        self.check_status: dict = {}
 
     def notify(self, event: Event) -> None:
         """Notify"""
@@ -49,7 +49,7 @@ class View:
             if check_status:
                 self.check_status = check_status
             else:
-                self.check_status = None
+                self.check_status = {}
 
         if isinstance(event, ThreadQuitEvent):
             game_over = pygame.event.Event(pygame.USEREVENT + 1)
@@ -98,24 +98,25 @@ class View:
         for move in self.gamemodel.moves:
             if cords == move.split(":")[0]:
                 self.screen.blit(
-                    highlight, (int(move.split(":")[1][0]) * View.SIZE, int(move.split(":")[1][1]) * View.SIZE))
+                    highlight, (int(move.split(":")[1][0]) * View.SIZE, int(move.split(":")[1][1]) * View.SIZE)
+                )
 
     def highlight_check(self) -> None:
+        """Highlight the pieces if a king is in check"""
 
         red_highlight: pygame.Surface = self.create_highlight("red")
         green_highlight: pygame.Surface = self.create_highlight("green")
 
-        king_loc = self.check_status['king_location']
-        attacking_pieces = self.check_status['attacking_pieces']
+        king_loc = self.check_status["king_location"]
+        attacking_pieces = self.check_status["attacking_pieces"]
 
-        if self.gamemodel.color == 'black':
+        if self.gamemodel.color == "black":
             king_loc = self.invert_check_highlight(king_loc)
             attacking_pieces = list(map(self.invert_check_highlight, attacking_pieces))
 
         self.screen.blit(green_highlight, (int(king_loc[0]) * View.SIZE, int(king_loc[1]) * View.SIZE))
         for pieces in attacking_pieces:
             self.screen.blit(red_highlight, (int(pieces[0]) * View.SIZE, int(pieces[1]) * View.SIZE))
-
 
     def load_images(self) -> None:
         """Load the images into a dictionary"""
@@ -134,11 +135,16 @@ class View:
         return highlight
 
     def invert_check_highlight(self, cord: str) -> str:
-        start_col, start_row, *_ = cord
+        """Invert the function highlight_check() for black players pov"""
+        new_string: str = ""
+        for letter in cord:
+            if letter.isdigit():
+                reversed = str(abs(int(letter) - 7))
+                new_string += reversed
+            else:
+                new_string += letter
 
-        start_col = str(abs(int(start_col) - 7))
-        start_row = str(abs(int(start_row) - 7))
-        return f"{start_col}{start_row}"
+        return new_string
 
     def initialise(self) -> bool:
         """Create and initialise a pygame instance"""

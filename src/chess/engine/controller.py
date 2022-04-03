@@ -83,14 +83,14 @@ class Controller:
     @typing.no_type_check
     def invert_move(self, move: str) -> str:
         """Invert black players click"""
-        start_col, start_row, _, end_col, end_row, _, movetype = move
-
-        start_col = str(abs(int(start_col) - 7))
-        start_row = str(abs(int(start_row) - 7))
-        end_col = str(abs(int(end_col) - 7))
-        end_row = str(abs(int(end_row) - 7))
-
-        return f"{start_col}{start_row}:{end_col}{end_row}:{movetype}"
+        new_string: str = ""
+        for letter in move:
+            if letter.isdigit():
+                inverse = str(abs(int(letter) - 7))
+                new_string += inverse
+            else:
+                new_string += letter
+        return new_string
 
     def reset_click(self) -> None:
         """Reset the click variables"""
