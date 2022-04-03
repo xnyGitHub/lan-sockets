@@ -124,7 +124,7 @@ class Rooms:
             "payload": {
                 "board": new_board,
                 "moves": "",
-                "move_log": self.game.get_move_log(),
+                "move_log": self.game.get_fen_move_log(),
                 "check_status": self.game.get_check_status(),
             },
         }

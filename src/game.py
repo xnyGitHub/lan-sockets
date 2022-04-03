@@ -137,6 +137,10 @@ class GameEngine:
     def get_move_log(self) -> List[str]:
         """Return the move log"""
         return self.move_log
+    
+    def get_fen_move_log(self) -> List[str]:
+        """Return the fen move log"""
+        return self.move_log_fen
 
     def get_black_moves(self) -> List[str]:
         """Return list of black moves"""
