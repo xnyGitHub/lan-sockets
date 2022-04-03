@@ -80,7 +80,7 @@ class GameEngine:
 
         self.switch_turns()
 
-    def undo_move(self) -> None:
+    def undo_move(self, player_invoked: bool = False) -> None:
         """
         Undo a move
         Moves is the move_log are in the same format as in make_move
@@ -115,6 +115,8 @@ class GameEngine:
 
         # Remove move from move log
         self.move_log.pop()
+        if player_invoked:
+            self.move_log_fen.pop()
         self.switch_turns()
 
     def switch_turns(self) -> None:
@@ -144,26 +146,6 @@ class GameEngine:
         """Return the check status"""
         return self.check_status
 
-    def update_check_status(self) -> None:
-        """Check whether either play is in check"""
-        if self.player_turn == "white":
-            white_king_location = self.get_king_location("wK")
-            results = [moves for moves in self.black_moves if white_king_location in moves]
-            if results:
-                self.check_status["king_location"] = white_king_location
-                self.check_status["attacking_pieces"] = results
-            else:
-                self.check_status = {}
-
-        if self.player_turn == "black":
-            black_king_location = self.get_king_location("bK")
-            results = [moves for moves in self.white_moves if black_king_location in moves]
-            if results:
-                self.check_status["king_location"] = black_king_location
-                self.check_status["attacking_pieces"] = results
-            else:
-                self.check_status = {}
-
     def get_king_location(self, king_piece: str) -> str:
         """Return the kings location for the piece passed in"""
         row, col = np.where(self.board == king_piece)
@@ -178,44 +160,47 @@ class GameEngine:
 
     def convert_to_fen(self, move: str) -> str:
         """Function responsible for converting a move to fen"""
-
-        fen_string: str = ""
         move_type = move[-1]
         if move_type in ("N", "T"):
-            pass
+            start,stop,piece,cap,_ = move.split(":")
+            
+            start, stop = self.convert_index_to_fen(start,stop)
+            piece_notation = piece[1]
+            capture_notation = "x" if cap != "--" else ""
+            
+            return f"{piece_notation}{start}{capture_notation}{stop}"
+            
         elif move_type == "C":
-            pass
+            _,_,rook_start,_,_ = move.split(":")
+            rook_col, _ = rook_start
+            if rook_col == "0":
+                return f"0-0-0"
+            return f"0-0"
         elif move_type == "E":
-            pass
+            return f"En-passant"
 
-        return fen_string
-
-    def convert_index_to_fen(self, cords: str) -> str:
+    def convert_index_to_fen(self, *move: str) -> str:
         """Convert cords to fen notation"""
         col_to_file = {0: "a", 1: "b", 2: "c", 3: "d", 4: "e", 5: "f", 6: "g", 7: "h"}
         row_to_rank = {0: "8", 1: "7", 2: "6", 3: "5", 4: "4", 5: "3", 6: "2", 7: "1"}
+        
+        results: list  = []
+        for col, row in move:
+            results.append(f"{col_to_file[int(col)]}{row_to_rank[int(row)]}")
 
-        col, row = cords
-        file = col_to_file[col]
-        rank = row_to_rank[row]
-
-        return f"{rank}{file}"
+        return results
 
     def get_moves(self) -> None:
         """Call the functions that will generate all legal moves"""
         # self.check_for_pawn_promotion()
         self.generate_all_moves()
         self.filter_invalid_moves()
-
-        # Three essential contidtions for a successful castle
-        # ------------------------------------------------------
-        # (1)Check king is not in check and hasn't moved
-        # (2)Check Rook hasn't moved or hasn't been captured
-        # (3)Check the castle squares are EMPTY and NOT in check
-
+        
         self.check_castle_rights_for_white()
         self.check_castle_rights_for_black()
-        self.update_check_status()
+        
+        self.generate_fen_nation_move_log()
+        self.check_gamestate()
 
     def generate_all_moves(self) -> None:
         """Function that calls get moves"""
@@ -450,6 +435,68 @@ class GameEngine:
             self.black_moves.append("40:20:00:30:C")
         if queen_side:
             self.black_moves.append("40:60:70:50:C")
+    
+    def generate_fen_nation_move_log(self) -> None:
+        """Convert move_log into long algebraic notation"""
+        if not self.move_log:
+            return
+        
+        latest_move = self.move_log[-1]
+        fen_notation = self.convert_to_fen(latest_move)
+        self.move_log_fen.append(fen_notation)
+    
+    def check_gamestate(self) -> None:
+        """
+        This function is responsible for the following;
+        
+        (1) Check if a player is in check
+            If so -
+                Update self.check_status with the king that is being attacked
+                Update self.check_status with the pieces attcked in the king
+                Update the latest move in self.move_log_fen with "+"
+        
+        (2) Check if a player is in checkmate
+            If so - 
+                Update self.check_status with the king that is being attacked
+                Update self.check_status with the pieces attcked in the king
+                Update the latest move in self.move_log_fen with "#"
+                
+                Update self.gamestate to "Checkmate"
+        
+        (2) Check if the game is stalemate
+            If so -
+                Update self.gamestate to "Stalemate"
+        """
+        if self.player_turn == "white":
+            white_king_location = self.get_king_location("wK")
+            results = [moves for moves in self.black_moves if white_king_location in moves]
+            if results:
+                self.check_status["king_location"] = white_king_location
+                self.check_status["attacking_pieces"] = results
+                
+                latest_move = self.move_log_fen[-1]
+                if not self.white_moves:
+                    self.move_log_fen[-1] = latest_move + "#"
+                else:
+                    self.move_log_fen[-1] = latest_move + "+"
+                
+            else:                    
+                self.check_status = {}
+
+        if self.player_turn == "black":
+            black_king_location = self.get_king_location("bK")
+            results = [moves for moves in self.white_moves if black_king_location in moves]
+            if results:
+                self.check_status["king_location"] = black_king_location
+                self.check_status["attacking_pieces"] = results
+                
+                latest_move = self.move_log_fen[-1]
+                if not self.black_moves:
+                    self.move_log_fen[-1] = latest_move + "#"
+                else:
+                    self.move_log_fen[-1] = latest_move + "+"
+            else:
+                self.check_status = {}
 
     def piece_movemovents(self) -> dict:
         """Piece movements helper function"""
