@@ -91,10 +91,10 @@ class Player:
         """Service the data sent from the server"""
 
         if "update" in data.values():
-            board = data["payload"]['board']
-            move = data["payload"]['moves']
-            log = data["payload"]['move_log']
-            check_status = data["payload"]['check_status']
+            board = data["payload"]["board"]
+            move = data["payload"]["moves"]
+            log = data["payload"]["move_log"]
+            check_status = data["payload"]["check_status"]
             self.event_manager.post(UpdateEvent(board, move, log))
             self.event_manager.post(ViewUpdate(check_status))
 
