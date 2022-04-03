@@ -1,5 +1,4 @@
 """Game object"""
-# type: ignore
 from typing import Tuple, List
 import numpy as np
 
@@ -12,6 +11,7 @@ class GameEngine:
 
         self.player_turn = "white"
         self.move_log: list = []
+        self.move_log_fen: list = []
         self.white_moves: list = []
         self.black_moves: list = []
         self.piece_moves: dict = self.piece_movemovents()
@@ -175,6 +175,31 @@ class GameEngine:
         if 0 <= new_x <= 7 and 0 <= new_y <= 7:
             return True
         return False
+
+    def convert_to_fen(self, move: str) -> str:
+        """Function responsible for converting a move to fen"""
+
+        fen_string: str = ""
+        move_type = move[-1]
+        if move_type in ("N", "T"):
+            pass
+        elif move_type == "C":
+            pass
+        elif move_type == "E":
+            pass
+
+        return fen_string
+
+    def convert_index_to_fen(self, cords: str) -> str:
+        """Convert cords to fen notation"""
+        col_to_file = {0: "a", 1: "b", 2: "c", 3: "d", 4: "e", 5: "f", 6: "g", 7: "h"}
+        row_to_rank = {0: "8", 1: "7", 2: "6", 3: "5", 4: "4", 5: "3", 6: "2", 7: "1"}
+
+        col, row = cords
+        file = col_to_file[col]
+        rank = row_to_rank[row]
+
+        return f"{rank}{file}"
 
     def get_moves(self) -> None:
         """Call the functions that will generate all legal moves"""
