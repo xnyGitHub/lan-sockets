@@ -9,7 +9,7 @@ from typing import Union
 import json
 
 from src.chess.engine.controller import Controller
-from src.chess.engine.event import EventManager, ThreadQuitEvent, UpdateEvent
+from src.chess.engine.event import EventManager, ThreadQuitEvent, UpdateEvent, ViewUpdate
 from src.chess.engine.game import GameEngine
 from src.chess.engine.view import View
 from src.utils import ctrlc_handler, flush_print_default, socket_recv_errors
@@ -91,8 +91,12 @@ class Player:
         """Service the data sent from the server"""
 
         if "update" in data.values():
-            board, move, log = data["payload"].values()
+            board = data["payload"]["board"]
+            move = data["payload"]["moves"]
+            log = data["payload"]["move_log"]
+            check_status = data["payload"]["check_status"]
             self.event_manager.post(UpdateEvent(board, move, log))
+            self.event_manager.post(ViewUpdate(check_status))
 
         elif "message" in data.values():
             if data["payload"] == "You win!":

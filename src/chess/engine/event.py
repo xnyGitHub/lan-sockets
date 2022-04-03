@@ -22,6 +22,13 @@ class UpdateEvent(Event):
         self.log: list = log
 
 
+class ViewUpdate(Event):
+    """Used to update client side view"""
+
+    def __init__(self, check_update: dict):
+        self.check_update = check_update
+
+
 class Highlight(Event):
     """Highlight user square click"""
 

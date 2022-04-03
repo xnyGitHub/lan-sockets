@@ -2,7 +2,7 @@
 import typing
 import numpy as np
 from src.chess.engine.event import EventManager, QuitEvent, TickEvent, UpdateEvent, Event
-
+from src.utils import invert_move
 
 class GameEngine:
     """Holds the game state."""
@@ -54,46 +54,9 @@ class GameEngine:
 
         if self.color == "black":
             self.board = np.rot90(self.board, 2)  # type: ignore
-            self.moves = list(map(self.invert_move, moves))
+            self.moves = list(map(invert_move, moves))
         else:
             self.moves = moves
-
-    @typing.no_type_check
-    def invert_move(self, move: str) -> str:
-        """Invert black players click"""
-        movetype = move[-1]
-        if movetype in ("N", "T"):
-            print(move)
-            start_col, start_row, _, end_col, end_row, _, move_type = move
-
-            start_col = str(abs(int(start_col) - 7))
-            start_row = str(abs(int(start_row) - 7))
-            end_col = str(abs(int(end_col) - 7))
-            end_row = str(abs(int(end_row) - 7))
-
-            return f"{start_col}{start_row}:{end_col}{end_row}:{move_type}"
-
-        if movetype == "C":
-            king_start, king_end, rook_start, rook_end, movetype = move.split(":")
-
-            king_start_col, king_start_row = king_start
-            king_end_col, king_end_row = king_end
-            rook_start_col, rook_start_row = rook_start
-            rook_end_col, rook_end_row = rook_end
-
-            king_start_col = str(abs(int(king_start_col) - 7))
-            king_start_row = str(abs(int(king_start_row) - 7))
-
-            king_end_col = str(abs(int(king_end_col) - 7))
-            king_end_row = str(abs(int(king_end_row) - 7))
-
-            rook_start_col = str(abs(int(rook_start_col) - 7))
-            rook_start_row = str(abs(int(rook_start_row) - 7))
-
-            rook_end_col = str(abs(int(rook_end_col) - 7))
-            rook_end_row = str(abs(int(rook_end_row) - 7))
-
-            return f"{king_start_col}{king_start_row}:{king_end_col}{king_end_row}:{rook_start_col}{rook_start_row}:{rook_end_col}{rook_end_row}:{movetype}"
 
     def run(self) -> None:
         """Starts the game engine loop"""

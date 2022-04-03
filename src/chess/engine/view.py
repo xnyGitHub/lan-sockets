@@ -1,9 +1,9 @@
 """View class for MVC"""  # pylint: disable=redefined-builtin,no-member,no-self-use
 import os
 import pygame
-from src.chess.engine.event import EventManager, Event, QuitEvent, TickEvent, Highlight, ThreadQuitEvent
+from src.chess.engine.event import EventManager, Event, QuitEvent, TickEvent, Highlight, ThreadQuitEvent, ViewUpdate
 from src.chess.engine.game import GameEngine
-from src.utils import flush_print_default
+from src.utils import flush_print_default, invert_move
 
 
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
@@ -29,6 +29,7 @@ class View:
         self.images: dict = {}
         self.initialised: bool = self.initialise()
         self.current_click: tuple = (None, None)
+        self.check_status: dict = {}
 
     def notify(self, event: Event) -> None:
         """Notify"""
@@ -42,6 +43,14 @@ class View:
             self.initialised = False
             pygame.quit()
 
+        if isinstance(event, ViewUpdate):
+            check_status = event.check_update
+
+            if check_status:
+                self.check_status = check_status
+            else:
+                self.check_status = {}
+
         if isinstance(event, ThreadQuitEvent):
             game_over = pygame.event.Event(pygame.USEREVENT + 1)
             pygame.event.post(game_over)
@@ -52,6 +61,9 @@ class View:
         if not self.initialised:
             return
         self.draw_board()
+
+        if self.check_status:
+            self.highlight_check()
 
         if self.current_click[0] is not None:  # Check if the user has selected a square
             self.highlight_square()  # Draw highlighed square
@@ -88,6 +100,23 @@ class View:
                 self.screen.blit(
                     highlight, (int(move.split(":")[1][0]) * View.SIZE, int(move.split(":")[1][1]) * View.SIZE)
                 )
+
+    def highlight_check(self) -> None:
+        """Highlight the pieces if a king is in check"""
+
+        red_highlight: pygame.Surface = self.create_highlight("red")
+        green_highlight: pygame.Surface = self.create_highlight("green")
+
+        king_loc = self.check_status["king_location"]
+        attacking_pieces = self.check_status["attacking_pieces"]
+
+        if self.gamemodel.color == "black":
+            king_loc = invert_move(king_loc)
+            attacking_pieces = list(map(invert_move, attacking_pieces))
+
+        self.screen.blit(green_highlight, (int(king_loc[0]) * View.SIZE, int(king_loc[1]) * View.SIZE))
+        for pieces in attacking_pieces:
+            self.screen.blit(red_highlight, (int(pieces[0]) * View.SIZE, int(pieces[1]) * View.SIZE))
 
     def load_images(self) -> None:
         """Load the images into a dictionary"""

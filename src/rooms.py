@@ -121,7 +121,12 @@ class Rooms:
         new_board = self.game.get_board().tolist()  # type: ignore
         message: dict = {
             "action": "update",
-            "payload": {"board": new_board, "moves": "", "move_log": self.game.get_move_log()},
+            "payload": {
+                "board": new_board,
+                "moves": "",
+                "move_log": self.game.get_move_log(),
+                "check_status": self.game.get_check_status(),
+            },
         }
 
         # Get the correct moves for the correct player
