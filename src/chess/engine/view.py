@@ -1,7 +1,7 @@
 """View class for MVC"""  # pylint: disable=redefined-builtin,no-member,no-self-use
 import os
 import pygame
-from src.chess.engine.event import EventManager, Event, QuitEvent, TickEvent, Highlight, ThreadQuitEvent, ViewUpdate
+from src.chess.engine.event import EventManager, Event, QuitEvent, TickEvent, Highlight, ThreadQuitEvent, ViewUpdate, UpdateEvent
 from src.chess.engine.game import GameEngine
 from src.utils import flush_print_default, invert_move
 import math
@@ -23,6 +23,8 @@ class View:
     GREEN: tuple = (119, 149, 86)  # Off Green colour
     WHITE: tuple = (235, 235, 208)  # Off White Color
 
+    SOUNDS: dict = {}
+
     def __init__(self, event_manager: EventManager, gamemodel: GameEngine) -> None:
         self.event_manager = event_manager
         self.gamemodel: GameEngine = gamemodel
@@ -32,6 +34,8 @@ class View:
         self.initialised: bool = self.initialise()
         self.current_click: tuple = (None, None)
         self.check_status: dict = {}
+
+        self.sound_played = False
 
     def notify(self, event: Event) -> None:
         """Notify"""
@@ -44,6 +48,9 @@ class View:
         if isinstance(event, QuitEvent):
             self.initialised = False
             pygame.quit()
+
+        if isinstance(event, UpdateEvent):
+            self.sound_played = False
 
         if isinstance(event, ViewUpdate):
             check_status = event.check_update
@@ -65,6 +72,10 @@ class View:
         self.draw_board()
         self.draw_move_log()
         self.draw_file_and_rank()
+
+        if self.sound_played is not True:
+            self.play_sounds()
+            self.sound_played = True
 
         if self.check_status:
             self.highlight_check()
@@ -137,6 +148,27 @@ class View:
                     highlight, (int(move.split(":")[1][0]) * View.SIZE, int(move.split(":")[1][1]) * View.SIZE)
                 )
 
+    def play_sounds(self) -> None:
+        if not self.gamemodel.move_log:
+            return
+        latest_move = self.gamemodel.move_log[-1]
+
+        if "#" in latest_move:
+            pygame.mixer.music.load(View.SOUNDS["Gameover"])
+            pygame.mixer.music.play()
+        elif "+" in latest_move:
+            pygame.mixer.music.load(View.SOUNDS["Check"])
+            pygame.mixer.music.play()
+        elif latest_move in ("0-0","0-0-0"):
+            pygame.mixer.music.load(View.SOUNDS["Castle"])
+            pygame.mixer.music.play()
+        elif "x" in latest_move:
+            pygame.mixer.music.load(View.SOUNDS["Capture"])
+            pygame.mixer.music.play()
+        else:
+            pygame.mixer.music.load(View.SOUNDS["Move"])
+            pygame.mixer.music.play()
+
     def highlight_check(self) -> None:
         """Highlight the pieces if a king is in check"""
 
@@ -162,6 +194,13 @@ class View:
         for piece in pieces:
             self.images[piece] = pygame.image.load("src/chess/assets/images/" + piece + ".png")
 
+    def load_sounds(self) -> None:
+        View.SOUNDS["Move"] = "src/chess/assets/sounds/piece_move.ogg"
+        View.SOUNDS["Capture"] = "src/chess/assets/sounds/piece_capture.ogg"
+        View.SOUNDS["Check"] = "src/chess/assets/sounds/piece_check.ogg"
+        View.SOUNDS["Gameover"] = "src/chess/assets/sounds/game_over.ogg"
+        View.SOUNDS["Castle"] = "src/chess/assets/sounds/castle.ogg"
+
     def create_highlight(self, color: str) -> pygame.Surface:
         """Create a highlight pygame object"""
         highlight = pygame.Surface((View.SIZE, View.SIZE))
@@ -176,4 +215,5 @@ class View:
         pygame.display.set_caption("Chess Engine")
         self.screen = pygame.display.set_mode((512 + View.RIGHT_PANEL, 512))
         self.load_images()
+        self.load_sounds()
         return True
