@@ -137,7 +137,7 @@ class GameEngine:
     def get_move_log(self) -> List[str]:
         """Return the move log"""
         return self.move_log
-    
+
     def get_fen_move_log(self) -> List[str]:
         """Return the fen move log"""
         return self.move_log_fen
@@ -165,31 +165,38 @@ class GameEngine:
     def convert_to_fen(self, move: str) -> str:
         """Function responsible for converting a move to fen"""
         move_type = move[-1]
+        fen_string: str = ""
         if move_type in ("N", "T"):
-            start,stop,piece,cap,_ = move.split(":")
-            
-            start, stop = self.convert_index_to_fen(start,stop)
+            start, stop, piece, cap, _ = move.split(":")
+
+            start, stop = self.convert_index_to_fen(start, stop)
             piece_notation = piece[1]
             capture_notation = "x" if cap != "--" else ""
-            
-            return f"{piece_notation}{start}{capture_notation}{stop}"
-            
-        elif move_type == "C":
-            _,_,rook_start,_,_ = move.split(":")
-            rook_col, _ = rook_start
-            if rook_col == "0":
-                return f"0-0-0"
-            return f"0-0"
-        elif move_type == "E":
-            return f"En-passant"
 
-    def convert_index_to_fen(self, *move: str) -> str:
+            fen_string = f"{piece_notation}{start}{capture_notation}{stop}"
+
+        elif move_type == "C":
+            rook_col: str
+            _, _, rook_start, _, _ = move.split(":")
+            rook_col, _ = rook_start  # type: ignore
+            if rook_col == "0":
+                fen_string = "0-0-0"
+            else:
+                fen_string = "0-0"
+        elif move_type == "E":
+            fen_string = "En-passant"
+
+        return fen_string
+
+    def convert_index_to_fen(self, *move: str) -> list:
         """Convert cords to fen notation"""
+        col: str = ""
+        row: str = ""
         col_to_file = {0: "a", 1: "b", 2: "c", 3: "d", 4: "e", 5: "f", 6: "g", 7: "h"}
         row_to_rank = {0: "8", 1: "7", 2: "6", 3: "5", 4: "4", 5: "3", 6: "2", 7: "1"}
-        
-        results: list  = []
-        for col, row in move:
+
+        results: list = []
+        for col, row in move:  # type: ignore
             results.append(f"{col_to_file[int(col)]}{row_to_rank[int(row)]}")
 
         return results
@@ -199,10 +206,10 @@ class GameEngine:
         # self.check_for_pawn_promotion()
         self.generate_all_moves()
         self.filter_invalid_moves()
-        
+
         self.check_castle_rights_for_white()
         self.check_castle_rights_for_black()
-        
+
         self.generate_fen_nation_move_log()
         self.check_gamestate()
 
@@ -439,34 +446,34 @@ class GameEngine:
             self.black_moves.append("40:20:00:30:C")
         if queen_side:
             self.black_moves.append("40:60:70:50:C")
-    
+
     def generate_fen_nation_move_log(self) -> None:
         """Convert move_log into long algebraic notation"""
         if not self.move_log:
             return
-        
+
         latest_move = self.move_log[-1]
         fen_notation = self.convert_to_fen(latest_move)
         self.move_log_fen.append(fen_notation)
-    
+
     def check_gamestate(self) -> None:
         """
         This function is responsible for the following;
-        
+
         (1) Check if a player is in check
             If so -
                 Update self.check_status with the king that is being attacked
                 Update self.check_status with the pieces attcked in the king
                 Update the latest move in self.move_log_fen with "+"
-        
+
         (2) Check if a player is in checkmate
-            If so - 
+            If so -
                 Update self.check_status with the king that is being attacked
                 Update self.check_status with the pieces attcked in the king
                 Update the latest move in self.move_log_fen with "#"
-                
+
                 Update self.gamestate to "Checkmate"
-        
+
         (2) Check if the game is stalemate
             If so -
                 Update self.gamestate to "Stalemate"
@@ -477,14 +484,14 @@ class GameEngine:
             if results:
                 self.check_status["king_location"] = white_king_location
                 self.check_status["attacking_pieces"] = results
-                
+
                 latest_move = self.move_log_fen[-1]
                 if not self.white_moves:
                     self.move_log_fen[-1] = latest_move + "#"
                 else:
                     self.move_log_fen[-1] = latest_move + "+"
-                
-            else:                    
+
+            else:
                 self.check_status = {}
 
         if self.player_turn == "black":
@@ -493,7 +500,7 @@ class GameEngine:
             if results:
                 self.check_status["king_location"] = black_king_location
                 self.check_status["attacking_pieces"] = results
-                
+
                 latest_move = self.move_log_fen[-1]
                 if not self.black_moves:
                     self.move_log_fen[-1] = latest_move + "#"

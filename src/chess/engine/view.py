@@ -1,10 +1,19 @@
 """View class for MVC"""  # pylint: disable=redefined-builtin,no-member,no-self-use
 import os
+import math
 import pygame
-from src.chess.engine.event import EventManager, Event, QuitEvent, TickEvent, Highlight, ThreadQuitEvent, ViewUpdate, UpdateEvent
+from src.chess.engine.event import (
+    EventManager,
+    Event,
+    QuitEvent,
+    TickEvent,
+    Highlight,
+    ThreadQuitEvent,
+    ViewUpdate,
+    UpdateEvent,
+)
 from src.chess.engine.game import GameEngine
 from src.utils import flush_print_default, invert_move
-import math
 
 
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
@@ -105,36 +114,38 @@ class View:
                 # fmt: on
 
     def draw_move_log(self) -> None:
+        """Draw the move log onto the screen"""
         font = pygame.font.Font("freesansbold.ttf", 14)
         position = [544, 672]
         height = font.get_height()
 
-        txt_surface = font.render("White", True, View.WHITE, pygame.SRCALPHA)
+        txt_surface = font.render("White", True, pygame.Color("white"), pygame.SRCALPHA)
         self.screen.blit(txt_surface, (544, 5))
 
-        txt_surface = font.render("Black", True, View.WHITE, pygame.SRCALPHA)
+        txt_surface = font.render("Black", True, pygame.Color("white"), pygame.SRCALPHA)
         self.screen.blit(txt_surface, (672, 5))
 
-        seperator = font.render("|", True, View.WHITE, pygame.SRCALPHA)
+        seperator = font.render("|", True, pygame.Color("white"), pygame.SRCALPHA)
         for count, text in enumerate(self.gamemodel.move_log):
-            txt_surface = font.render(text, True, View.WHITE, pygame.SRCALPHA)
+            txt_surface = font.render(text, True, pygame.Color("white"), pygame.SRCALPHA)
             self.screen.blit(txt_surface, (position[count % 2], 20 + (height * (math.floor(count / 2)))))
             self.screen.blit(seperator, (630, 20 + (height * (math.floor(count / 2)))))
 
     def draw_file_and_rank(self) -> None:
+        """Draw the rank and file onto the screen"""
         font = pygame.font.Font("freesansbold.ttf", 12)
-        count = ["8", "7", "6", "5", "4", "3", "2", "1"]
+        ranks = ["8", "7", "6", "5", "4", "3", "2", "1"]
         files = ["a", "b", "c", "d", "e", "f", "g", "h"]
         if self.gamemodel.color == "black":
-           count = count[::-1]
-           files = files[::-1]
+            ranks = ranks[::-1]
+            files = files[::-1]
 
-        for r in range(View.DIMENSION):  # Loop through each rank
-            rank = font.render(count[r], True, pygame.Color("Black"))
-            self.screen.blit(rank, pygame.Rect(500, r * View.SIZE + 5, View.SIZE, View.SIZE))
+        for count in range(View.DIMENSION):  # Loop through each rank
+            rank = font.render(ranks[count], True, pygame.Color("Black"))
+            self.screen.blit(rank, pygame.Rect(500, count * View.SIZE + 5, View.SIZE, View.SIZE))
 
-            file = font.render(files[r], True, pygame.Color("Black"))
-            self.screen.blit(file, pygame.Rect(r * View.SIZE + 2, 500, View.SIZE, View.SIZE))
+            file = font.render(files[count], True, pygame.Color("Black"))
+            self.screen.blit(file, pygame.Rect(count * View.SIZE + 2, 500, View.SIZE, View.SIZE))
 
     def highlight_square(self) -> None:
         """Highlight the square that a user clicks on, also show possible moves if its their piece"""
@@ -149,6 +160,7 @@ class View:
                 )
 
     def play_sounds(self) -> None:
+        """Play the sound based on the last move"""
         if not self.gamemodel.move_log:
             return
         latest_move = self.gamemodel.move_log[-1]
@@ -159,7 +171,7 @@ class View:
         elif "+" in latest_move:
             pygame.mixer.music.load(View.SOUNDS["Check"])
             pygame.mixer.music.play()
-        elif latest_move in ("0-0","0-0-0"):
+        elif latest_move in ("0-0", "0-0-0"):
             pygame.mixer.music.load(View.SOUNDS["Castle"])
             pygame.mixer.music.play()
         elif "x" in latest_move:
@@ -195,6 +207,7 @@ class View:
             self.images[piece] = pygame.image.load("src/chess/assets/images/" + piece + ".png")
 
     def load_sounds(self) -> None:
+        """Load the sounds"""
         View.SOUNDS["Move"] = "src/chess/assets/sounds/piece_move.ogg"
         View.SOUNDS["Capture"] = "src/chess/assets/sounds/piece_capture.ogg"
         View.SOUNDS["Check"] = "src/chess/assets/sounds/piece_check.ogg"

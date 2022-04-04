@@ -1,7 +1,6 @@
 """Controller class for Player MVC"""  # pylint: disable=no-member,unbalanced-tuple-unpacking
 import os
 from typing import Callable
-import typing
 import json
 import pygame
 from src.chess.engine.event import Event, EventManager, Highlight, QuitEvent, TickEvent

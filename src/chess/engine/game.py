@@ -1,8 +1,8 @@
 """Model class for MVC"""
-import typing
 import numpy as np
 from src.chess.engine.event import EventManager, QuitEvent, TickEvent, UpdateEvent, Event
 from src.utils import invert_move
+
 
 class GameEngine:
     """Holds the game state."""
