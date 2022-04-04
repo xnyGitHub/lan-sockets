@@ -64,6 +64,7 @@ class View:
             return
         self.draw_board()
         self.draw_move_log()
+        self.draw_file_and_rank()
 
         if self.check_status:
             self.highlight_check()
@@ -108,6 +109,21 @@ class View:
             txt_surface = font.render(text, True, View.WHITE, pygame.SRCALPHA)
             self.screen.blit(txt_surface, (position[count % 2], 20 + (height * (math.floor(count / 2)))))
             self.screen.blit(seperator, (630, 20 + (height * (math.floor(count / 2)))))
+
+    def draw_file_and_rank(self) -> None:
+        font = pygame.font.Font("freesansbold.ttf", 12)
+        count = ["8", "7", "6", "5", "4", "3", "2", "1"]
+        files = ["a", "b", "c", "d", "e", "f", "g", "h"]
+        if self.gamemodel.color == "black":
+           count = count[::-1]
+           files = files[::-1]
+
+        for r in range(View.DIMENSION):  # Loop through each rank
+            rank = font.render(count[r], True, pygame.Color("Black"))
+            self.screen.blit(rank, pygame.Rect(500, r * View.SIZE + 5, View.SIZE, View.SIZE))
+
+            file = font.render(files[r], True, pygame.Color("Black"))
+            self.screen.blit(file, pygame.Rect(r * View.SIZE + 2, 500, View.SIZE, View.SIZE))
 
     def highlight_square(self) -> None:
         """Highlight the square that a user clicks on, also show possible moves if its their piece"""
