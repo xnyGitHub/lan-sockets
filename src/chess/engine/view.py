@@ -33,6 +33,14 @@ class View:
     GREEN: tuple = (119, 149, 86)  # Off Green colour
     WHITE: tuple = (235, 235, 208)  # Off White Color
 
+    IMAGE_LOCATION = (10,10)
+
+    TOP_USERNAME_LOCATION = (50,10)
+    BOT_USERNAME_LOCATION = (50,572)
+
+    TOP_IMAGE_LOCATION = (5,5)
+    BOT_IMAGE_LOCATION = (5,567)
+
     SOUNDS: dict = {}
 
     def __init__(self, event_manager: EventManager, gamemodel: GameEngine) -> None:
@@ -82,6 +90,7 @@ class View:
         self.draw_board()
         self.draw_move_log()
         self.draw_file_and_rank()
+        self.draw_username_and_captured_pieces()
 
         if self.sound_played is not True:
             self.play_sounds()
@@ -147,6 +156,33 @@ class View:
 
             file = font.render(files[count], True, pygame.Color("Black"))
             self.screen.blit(file, pygame.Rect(count * View.SIZE + 2, View.TOP_PANEL + 500, View.SIZE, View.SIZE))
+
+    def draw_username_and_captured_pieces(self) -> None:
+        font = pygame.font.Font('freesansbold.ttf', 14)
+        white: str = "Michael"
+        black: str = "Joshua"
+
+        white_text = font.render(white, True, View.WHITE, pygame.SRCALPHA)
+        black_text = font.render(black, True, View.WHITE, pygame.SRCALPHA)
+
+        black_king = self.images['bK']
+        black_king = pygame.transform.scale(black_king,(40,40))
+        white_king = self.images['wK']
+        white_king = pygame.transform.scale(white_king,(40,40))
+
+        pygame.draw.rect(self.screen, View.WHITE, pygame.Rect(5, 5, 40, 40))
+        pygame.draw.rect(self.screen, View.WHITE, pygame.Rect(5, 567, 40, 40))
+
+        if self.gamemodel.color == "black":
+            self.screen.blit(white_text, View.TOP_USERNAME_LOCATION)
+            self.screen.blit(black_text, View.BOT_USERNAME_LOCATION)
+            self.screen.blit(white_king, View.TOP_IMAGE_LOCATION)
+            self.screen.blit(black_king, View.BOT_IMAGE_LOCATION)
+        else:
+            self.screen.blit(white_text, View.BOT_USERNAME_LOCATION)
+            self.screen.blit(black_text, View.TOP_USERNAME_LOCATION)
+            self.screen.blit(black_king, View.TOP_IMAGE_LOCATION)
+            self.screen.blit(white_king, View.BOT_IMAGE_LOCATION)
 
     def highlight_square(self) -> None:
         """Highlight the square that a user clicks on, also show possible moves if its their piece"""
