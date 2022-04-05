@@ -15,6 +15,7 @@ class GameEngine:
         self.moves: list = []
         self.move_log: list = []
         self.color: str = "None"
+        self.captured_pieces: dict = {}
 
         """Default board constructor"""
         self.board: list = [
@@ -34,7 +35,7 @@ class GameEngine:
             self.running = False
 
         if isinstance(event, UpdateEvent):
-            self.update(event.board, event.moves, event.log)
+            self.update(event.board, event.moves, event.log, event.captured)
 
         if isinstance(event, TickEvent):
             pass
@@ -47,11 +48,11 @@ class GameEngine:
         """Return the player color"""
         return self.color
 
-    def update(self, board: list, moves: list, move_log: list) -> None:
+    def update(self, board: list, moves: list, move_log: list, captured_pieces: dict) -> None:
         """Update the client gamestate when socket sends new gamestate"""
         self.board = board
         self.move_log = move_log
-
+        self.captured_pieces = captured_pieces
         if self.color == "black":
             self.board = np.rot90(self.board, 2)  # type: ignore
             self.moves = list(map(invert_move, moves))

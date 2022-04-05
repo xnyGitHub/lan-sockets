@@ -94,8 +94,9 @@ class Player:
             board = data["payload"]["board"]
             move = data["payload"]["moves"]
             log = data["payload"]["move_log"]
+            captured = data["payload"]["captured"]
             check_status = data["payload"]["check_status"]
-            self.event_manager.post(UpdateEvent(board, move, log))
+            self.event_manager.post(UpdateEvent(board, move, log, captured))
             self.event_manager.post(ViewUpdate(check_status))
 
         elif "message" in data.values():

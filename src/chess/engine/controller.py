@@ -41,6 +41,7 @@ class Controller:
                 if event.type == pygame.MOUSEBUTTONDOWN:
 
                     col, row = pygame.mouse.get_pos()
+                    row = row - 50
                     col, row = int(col / 64), int(row / 64)
 
                     if self.square_selected == (col, row):
