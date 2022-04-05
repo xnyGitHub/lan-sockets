@@ -14,6 +14,7 @@ class GameEngine:
         self.running: bool = False
         self.moves: list = []
         self.move_log: list = []
+        self.usernames: dict = {}
         self.color: str = "None"
         self.captured_pieces: dict = {}
 
@@ -43,6 +44,14 @@ class GameEngine:
     def set_color(self, color: str) -> None:
         """Set the player color"""
         self.color = color
+
+    def set_players(self, usernames: dict) -> None:
+        """Set the player usernames"""
+        self.usernames = usernames
+
+    def get_players(self) -> dict:
+        """Return player usernames"""
+        return self.usernames
 
     def get_color(self) -> str:
         """Return the player color"""

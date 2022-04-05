@@ -181,7 +181,7 @@ White - {players['white']} | vs | {players['black']} - Black
 
         # No reponse from server
 
-    def start_game(self, color: str) -> None:
+    def start_game(self, color: str, usernames: dict) -> None:
         """Start the game"""
 
         print(f"The game has started. You will play as {color}")
@@ -194,6 +194,7 @@ White - {players['white']} | vs | {players['black']} - Black
         # Start pygame
         self.initialise_pygame()
         self.gamemodel.set_color(color)
+        self.gamemodel.set_players(usernames)
         self.gamemodel.run()
         # Stop the thread
         if not self.event.is_set():
@@ -260,8 +261,9 @@ Please enter your choice: """
                                 response = json.loads(data)
                                 if response["action"] == "start_game":
                                     waiting_in_lobby = False
-                                    color = response["payload"]
-                                    self.start_game(color)
+                                    color = response["payload"]["color"]
+                                    usernames = response["payload"]["username"]
+                                    self.start_game(color, usernames)
                                     break
 
                     except KeyboardInterrupt:
