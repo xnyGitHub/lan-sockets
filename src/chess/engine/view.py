@@ -26,6 +26,7 @@ class View:
 
     WIDTH = HEIGHT = 512  # Heigh and width of the board
     RIGHT_PANEL = 256
+    TOP_PANEL = BOT_PANEL = 50
     DIMENSION = 8  # This will cause 8 squares to be print on the board
     SIZE = HEIGHT / DIMENSION  # Dimensions of the square
 
@@ -104,13 +105,13 @@ class View:
                 color = colors[((row + col) % 2)]
 
                 pygame.draw.rect(
-                    self.screen, color, pygame.Rect(col * View.SIZE, row * View.SIZE, View.SIZE, View.SIZE)
+                    self.screen, color, pygame.Rect(col * View.SIZE, View.TOP_PANEL + row * View.SIZE, View.SIZE, View.SIZE)
                 )
                 # fmt: off
                 piece = board[row][col]
                 if piece != "--":
                     image = self.images[piece]
-                    self.screen.blit(image,pygame.Rect(col * View.SIZE,row * View.SIZE,View.SIZE,View.SIZE,))
+                    self.screen.blit(image,pygame.Rect(col * View.SIZE, View.TOP_PANEL + row * View.SIZE,View.SIZE,View.SIZE,))
                 # fmt: on
 
     def draw_move_log(self) -> None:
@@ -142,21 +143,21 @@ class View:
 
         for count in range(View.DIMENSION):  # Loop through each rank
             rank = font.render(ranks[count], True, pygame.Color("Black"))
-            self.screen.blit(rank, pygame.Rect(500, count * View.SIZE + 5, View.SIZE, View.SIZE))
+            self.screen.blit(rank, pygame.Rect(500, View.TOP_PANEL + count * View.SIZE + 5, View.SIZE, View.SIZE))
 
             file = font.render(files[count], True, pygame.Color("Black"))
-            self.screen.blit(file, pygame.Rect(count * View.SIZE + 2, 500, View.SIZE, View.SIZE))
+            self.screen.blit(file, pygame.Rect(count * View.SIZE + 2, View.TOP_PANEL + 500, View.SIZE, View.SIZE))
 
     def highlight_square(self) -> None:
         """Highlight the square that a user clicks on, also show possible moves if its their piece"""
         highlight: pygame.Surface = self.create_highlight("blue")
         cords: str = "".join(str(point) for point in self.current_click)
 
-        self.screen.blit(highlight, (self.current_click[0] * View.SIZE, self.current_click[1] * View.SIZE))
+        self.screen.blit(highlight, (self.current_click[0] * View.SIZE, View.TOP_PANEL + self.current_click[1] * View.SIZE))
         for move in self.gamemodel.moves:
             if cords == move.split(":")[0]:
                 self.screen.blit(
-                    highlight, (int(move.split(":")[1][0]) * View.SIZE, int(move.split(":")[1][1]) * View.SIZE)
+                    highlight, (int(move.split(":")[1][0]) * View.SIZE, View.TOP_PANEL + int(move.split(":")[1][1]) * View.SIZE)
                 )
 
     def play_sounds(self) -> None:
@@ -194,9 +195,9 @@ class View:
             king_loc = invert_move(king_loc)
             attacking_pieces = list(map(invert_move, attacking_pieces))
 
-        self.screen.blit(green_highlight, (int(king_loc[0]) * View.SIZE, int(king_loc[1]) * View.SIZE))
+        self.screen.blit(green_highlight, (int(king_loc[0]) * View.SIZE, View.TOP_PANEL + int(king_loc[1]) * View.SIZE))
         for pieces in attacking_pieces:
-            self.screen.blit(red_highlight, (int(pieces[0]) * View.SIZE, int(pieces[1]) * View.SIZE))
+            self.screen.blit(red_highlight, (int(pieces[0]) * View.SIZE, View.TOP_PANEL +  int(pieces[1]) * View.SIZE))
 
     def load_images(self) -> None:
         """Load the images into a dictionary"""
@@ -226,7 +227,7 @@ class View:
         """Create and initialise a pygame instance"""
         pygame.init()
         pygame.display.set_caption("Chess Engine")
-        self.screen = pygame.display.set_mode((512 + View.RIGHT_PANEL, 512))
+        self.screen = pygame.display.set_mode((512 + View.RIGHT_PANEL, View.TOP_PANEL + 512 + View.BOT_PANEL))
         self.load_images()
         self.load_sounds()
         return True
