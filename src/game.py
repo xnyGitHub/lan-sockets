@@ -15,6 +15,7 @@ class GameEngine:
         self.white_moves: list = []
         self.black_moves: list = []
 
+        self.SORT_ORDER = {"P": 0, "N": 1, "B": 2, "R": 3, "Q": 4}
         self.white_captured: list = []
         self.black_captured: list = []
         self.piece_moves: dict = self.piece_movemovents()
@@ -151,6 +152,8 @@ class GameEngine:
 
     def get_captured_pieces(self) -> dict:
         """Return captured pieces"""
+        self.white_captured.sort(key=lambda val: self.SORT_ORDER[val[1]])
+        self.black_captured.sort(key=lambda val: self.SORT_ORDER[val[1]])
         pieces: dict = {
             "white": self.white_captured ,
             "black": self.black_captured
