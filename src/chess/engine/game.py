@@ -53,8 +53,6 @@ class GameEngine:
         self.board = board
         self.move_log = move_log
         self.captured_pieces = captured_pieces
-        print(self.captured_pieces)
-
         if self.color == "black":
             self.board = np.rot90(self.board, 2)  # type: ignore
             self.moves = list(map(invert_move, moves))
