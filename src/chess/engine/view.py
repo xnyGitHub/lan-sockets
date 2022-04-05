@@ -35,20 +35,21 @@ class View:
 
     IMAGE_LOCATION = (10,10)
 
-    TOP_USERNAME_LOCATION = (50,10)
-    BOT_USERNAME_LOCATION = (50,572)
+    TOP_USERNAME_LOCATION = (50,5)
+    BOT_USERNAME_LOCATION = (50,567)
 
     TOP_IMAGE_LOCATION = (5,5)
     BOT_IMAGE_LOCATION = (5,567)
 
     SOUNDS: dict = {}
+    IMAGES: dict = {}
+    OUTLINED_IMAGES: dict = {}
 
     def __init__(self, event_manager: EventManager, gamemodel: GameEngine) -> None:
         self.event_manager = event_manager
         self.gamemodel: GameEngine = gamemodel
         self.event_manager.register_listener(self)
         self.screen: pygame.surface.Surface
-        self.images: dict = {}
         self.initialised: bool = self.initialise()
         self.current_click: tuple = (None, None)
         self.check_status: dict = {}
@@ -120,7 +121,7 @@ class View:
                 # fmt: off
                 piece = board[row][col]
                 if piece != "--":
-                    image = self.images[piece]
+                    image = View.IMAGES[piece]
                     self.screen.blit(image,pygame.Rect(col * View.SIZE, View.TOP_PANEL + row * View.SIZE,View.SIZE,View.SIZE,))
                 # fmt: on
 
@@ -166,9 +167,9 @@ class View:
         white_text = font.render(white, True, View.WHITE, pygame.SRCALPHA)
         black_text = font.render(black, True, View.WHITE, pygame.SRCALPHA)
 
-        black_king = self.images['bK']
+        black_king = View.IMAGES['bK']
         black_king = pygame.transform.scale(black_king,(40,40))
-        white_king = self.images['wK']
+        white_king = View.IMAGES['wK']
         white_king = pygame.transform.scale(white_king,(40,40))
 
         pygame.draw.rect(self.screen, View.WHITE, pygame.Rect(5, 5, 40, 40))
@@ -185,6 +186,36 @@ class View:
             self.screen.blit(black_king, View.TOP_IMAGE_LOCATION)
             self.screen.blit(white_king, View.BOT_IMAGE_LOCATION)
 
+
+        if self.gamemodel.captured_pieces.get('white'):
+            white_pieces = self.gamemodel.captured_pieces['white']
+            last_piece: str = ""
+            gap = 0
+            for count, piece in enumerate(white_pieces):
+                if piece != last_piece:
+                    last_piece = piece
+                    gap += 1
+                image = View.IMAGES[piece]
+                image = pygame.transform.scale(image, (30, 30))
+                if self.gamemodel.color == "black":
+                    self.screen.blit(image,(25 + (gap *20 )+ count*5,20))
+                else:
+                    self.screen.blit(image,(25 + (gap *20 )+ count*5,582))
+
+        if self.gamemodel.captured_pieces.get('black'):
+            black_pieces = self.gamemodel.captured_pieces['black']
+            last_piece: str = ""
+            gap = 0
+            for count, piece in enumerate(black_pieces):
+                if piece != last_piece:
+                    last_piece = piece
+                    gap += 1
+                image = View.OUTLINED_IMAGES[piece]
+                image = pygame.transform.scale(image, (30, 30))
+                if self.gamemodel.color == "black":
+                    self.screen.blit(image,(25 + (gap *20 ) +count*5,582))
+                else:
+                    self.screen.blit(image,(25 + (gap *20 ) +count*5,20))
 
     def highlight_square(self) -> None:
         """Highlight the square that a user clicks on, also show possible moves if its their piece"""
@@ -241,9 +272,14 @@ class View:
         """Load the images into a dictionary"""
         # fmt: off
         pieces = ["wP","wR","wN","wB","wQ","wK","bP","bN","bQ","bR","bB","bK",]
+        outlined_pieces = ["bP","bN","bQ","bR","bB","bK"]
         # fmt: on
         for piece in pieces:
-            self.images[piece] = pygame.image.load("src/chess/assets/images/" + piece + ".png")
+            View.IMAGES[piece] = pygame.image.load("src/chess/assets/images/" + piece + ".png")
+
+        for piece in outlined_pieces:
+            View.OUTLINED_IMAGES[piece] = pygame.image.load("src/chess/assets/images/outlined/" + piece + ".png")
+
 
     def load_sounds(self) -> None:
         """Load the sounds"""
