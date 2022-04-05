@@ -14,6 +14,9 @@ class GameEngine:
         self.move_log_fen: list = []
         self.white_moves: list = []
         self.black_moves: list = []
+
+        self.white_captured: list = []
+        self.black_captured: list = []
         self.piece_moves: dict = self.piece_movemovents()
 
         self.check_status: dict = {}
@@ -34,7 +37,7 @@ class GameEngine:
 
         self.generate_all_moves()
 
-    def make_move(self, move: str) -> None:
+    def make_move(self, move: str, player_invoked: bool = False) -> None:
         """
         Make a move
         Move param is a string in the format of "start:end" e.g 10:30
@@ -50,6 +53,12 @@ class GameEngine:
             # Generate move data
             piece_moved = self.board[start_row][start_col]
             piece_captured = self.board[end_row][end_col]
+
+            if player_invoked and piece_captured != "--":
+                if piece_captured[0] == "w":
+                    self.white_captured.append(piece_captured)
+                else:
+                    self.black_captured.append(piece_captured)
 
             # Add to move log
             move_data = f"{start_cords}:{end_cords}:{piece_moved}:{piece_captured}:{movetype}"
@@ -99,6 +108,12 @@ class GameEngine:
             self.board[start_row][start_col] = piece_moved
             self.board[end_row][end_col] = piece_captured
 
+            if player_invoked and piece_captured != "--":
+                if piece_captured[0] == "w":
+                    self.white_captured.remove(piece_captured)
+                else:
+                    self.black_captured.remove(piece_captured)
+
         elif movetype == "C":
             king_start, king_end, rook_start, rook_end, movetype = move.split(":")
 
@@ -133,6 +148,14 @@ class GameEngine:
     def get_white_moves(self) -> List[str]:
         """Return list of white moves"""
         return self.white_moves
+
+    def get_captured_pieces(self) -> dict:
+        """Return captured pieces"""
+        pieces: dict = {
+            "white": self.white_captured ,
+            "black": self.black_captured
+        }
+        return pieces
 
     def get_move_log(self) -> List[str]:
         """Return the move log"""

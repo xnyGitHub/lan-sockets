@@ -125,6 +125,7 @@ class Rooms:
                 "board": new_board,
                 "moves": "",
                 "move_log": self.game.get_fen_move_log(),
+                "captured": self.game.get_captured_pieces(),
                 "check_status": self.game.get_check_status(),
             },
         }
@@ -147,7 +148,7 @@ class Rooms:
             move = data["payload"]["move"]
 
             if color == self.player_turn:
-                self.game.make_move(move)
+                self.game.make_move(move, player_invoked=True)
                 self.game.get_moves()
                 self.switch_turns()
             else:

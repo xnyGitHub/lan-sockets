@@ -87,6 +87,7 @@ class View:
 
         if not self.initialised:
             return
+        self.screen.fill((38, 37, 33))
         self.draw_board()
         self.draw_move_log()
         self.draw_file_and_rank()
@@ -183,6 +184,7 @@ class View:
             self.screen.blit(black_text, View.TOP_USERNAME_LOCATION)
             self.screen.blit(black_king, View.TOP_IMAGE_LOCATION)
             self.screen.blit(white_king, View.BOT_IMAGE_LOCATION)
+
 
     def highlight_square(self) -> None:
         """Highlight the square that a user clicks on, also show possible moves if its their piece"""
