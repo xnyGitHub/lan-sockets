@@ -104,7 +104,7 @@ class Rooms:
 
         # Send them a start payload which will be used to invoke pygame for the player
         for color, address in self.clients.items():
-            message = json.dumps({"action": "start_game", "payload": color})
+            message = json.dumps({"action": "start_game", "payload": {"color": color, "username": self.get_players()}})
             address.send((message).encode())
 
     def is_game_running(self) -> bool:

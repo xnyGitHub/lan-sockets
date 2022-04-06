@@ -165,8 +165,10 @@ class View:
     def draw_username_and_captured_pieces(self) -> None:
         """Draw the username and captured pieces"""
         font = pygame.font.Font("freesansbold.ttf", 14)
-        white: str = "Michael"
-        black: str = "Joshua"
+
+        player_usernames = self.gamemodel.get_players()
+        white: str = player_usernames["white"]
+        black: str = player_usernames["black"]
 
         white_text = font.render(white, True, View.WHITE, pygame.SRCALPHA)
         black_text = font.render(black, True, View.WHITE, pygame.SRCALPHA)
