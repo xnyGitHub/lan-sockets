@@ -202,8 +202,9 @@ class GameEngine:
         else:
             enemy_moves = self.get_white_moves()
 
-        if king_location in enemy_moves:
-            return True
+        for move in enemy_moves:
+            if king_location in move:
+                return True
         return False
 
 
@@ -565,16 +566,16 @@ class GameEngine:
 
         """----------(2) Check if the gamestate is checkmate or stalemate-----------"""
 
-        if self.is_king_under_attack("Black") and not len(self.get_black_moves):
+        if self.is_king_under_attack("Black") and not len(self.get_black_moves()):
             self.gamestate['gamestate'] = "Checkmate"
             self.gamestate['winner'] = "White"
-        elif not self.is_king_under_attack("Black") and not len(self.get_black_moves):
+        elif not self.is_king_under_attack("Black") and not len(self.get_black_moves()):
             self.gamestate['gamestate'] = "Stalemate"
             self.gamestate['winner'] = "None"
-        elif self.is_king_under_attack("White") and not len(self.get_white_moves):
+        elif self.is_king_under_attack("White") and not len(self.get_white_moves()):
             self.gamestate['gamestate'] = "Checkmate"
             self.gamestate['winner'] = "Black"
-        elif not self.is_king_under_attack("White") and not len(self.get_white_moves):
+        elif not self.is_king_under_attack("White") and not len(self.get_white_moves()):
             self.gamestate['gamestate'] = "Stalemate"
             self.gamestate['winner'] = "None"
 
