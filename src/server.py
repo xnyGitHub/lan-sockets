@@ -18,7 +18,6 @@ class Socket:
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     def __init__(self, host: str, port: int) -> None:
-        print("Initialising server...")
         self.sock.bind((host, port))
         self.sock.listen(2)
         self.running_threads: list = []
@@ -26,7 +25,6 @@ class Socket:
 
     def run(self) -> None:
         """Entry to point to start server"""
-        print("Server is running!")
         while True:
             try:  # So we can KeyBoard Interrupt
                 readable, _, _ = select.select([self.sock], [], [], 2)
@@ -52,14 +50,19 @@ class Socket:
 
 
 if __name__ == "__main__":
-    HOST = ""
+    HOST = socket.gethostbyname(socket.gethostname())
     PORT = 5555
 
     if sys.platform == "darwin":
-        HOST = "192.168.0.60"
         signal.signal(signal.SIGTSTP, ctrlc_handler)  # type: ignore
-
-    if sys.platform == "win32":
-        HOST = "192.168.0.13"
+    print("-----------------------------")
+    print("Starting server...")
     new_server = Socket(HOST, PORT)
+    print(f"""-----------------------------
+The server is now running on;
+HOST: {HOST}
+PORT: {PORT}
+-----------------------------
+Hit CTRL+C to shutdown server
+-----------------------------""")
     new_server.run()
