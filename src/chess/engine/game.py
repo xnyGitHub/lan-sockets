@@ -12,6 +12,8 @@ class GameEngine:
         self.ev_manager: EventManager = ev_manager
         ev_manager.register_listener(self)
         self.running: bool = False
+        self.gamestate: dict = {"gamestate":"Running",
+                                "winner":"None"}
         self.moves: list = []
         self.move_log: list = []
         self.usernames: dict = {}
@@ -36,7 +38,7 @@ class GameEngine:
             self.running = False
 
         if isinstance(event, UpdateEvent):
-            self.update(event.board, event.moves, event.log, event.captured)
+            self.update(event.board, event.moves, event.log, event.captured, event.gamestate)
 
         if isinstance(event, TickEvent):
             pass
@@ -57,11 +59,16 @@ class GameEngine:
         """Return the player color"""
         return self.color
 
-    def update(self, board: list, moves: list, move_log: list, captured_pieces: dict) -> None:
+    def get_gamestate(self) -> dict:
+        """Return the gamestate"""
+        return self.gamestate
+
+    def update(self, board: list, moves: list, move_log: list, captured_pieces: dict, gamestate: dict) -> None:
         """Update the client gamestate when socket sends new gamestate"""
         self.board = board
         self.move_log = move_log
         self.captured_pieces = captured_pieces
+        self.gamestate = gamestate
         if self.color == "black":
             self.board = np.rot90(self.board, 2)  # type: ignore
             self.moves = list(map(invert_move, moves))

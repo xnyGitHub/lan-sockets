@@ -93,6 +93,7 @@ class View:
         self.draw_move_log()
         self.draw_file_and_rank()
         self.draw_username_and_captured_pieces()
+        self.draw_winner()
 
         if self.sound_played is not True:
             self.play_sounds()
@@ -105,6 +106,27 @@ class View:
             self.highlight_square()  # Draw highlighed square
 
         pygame.display.flip()
+
+    def draw_winner(self) -> None:
+        """Display the winner"""
+        state = self.gamemodel.get_gamestate()
+        gamestate = state['gamestate']
+        winner = state['winner']
+
+        if gamestate == "Running":
+            return
+
+        font = pygame.font.Font("freesansbold.ttf", 14)
+        height = font.get_height()
+        gamestate_render = font.render(gamestate, True, pygame.Color("white"), pygame.SRCALPHA)
+        winner_render = font.render(winner, True, pygame.Color("white"), pygame.SRCALPHA)
+
+
+        if gamestate == "Checkmate":
+            self.screen.blit(gamestate_render, (613, 567))
+            self.screen.blit(winner_render, (613, 567+height))
+        else:
+            self.screen.blit(gamestate_render, (613, 567))
 
     def draw_board(self) -> None:
         """Render the board"""

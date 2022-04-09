@@ -125,6 +125,7 @@ class Rooms:
                 "board": new_board,
                 "moves": "",
                 "move_log": self.game.get_fen_move_log(),
+                "gamestate": self.game.get_gamestate(),
                 "captured": self.game.get_captured_pieces(),
                 "check_status": self.game.get_check_status(),
             },

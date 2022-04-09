@@ -16,11 +16,12 @@ class ThreadQuitEvent(Event):
 class UpdateEvent(Event):
     """Used to update client side board"""
 
-    def __init__(self, board: list, moves: list, log: list, captured: dict):
+    def __init__(self, board: list, moves: list, log: list, captured: dict, gamestate: dict):
         self.board: list = board
         self.moves: list = moves
         self.log: list = log
         self.captured: dict = captured
+        self.gamestate = gamestate
 
 
 class ViewUpdate(Event):
