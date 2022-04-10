@@ -23,6 +23,9 @@ class GameEngine:
 
         self.check_status: dict = {}
 
+        self.gamestate: dict = {"gamestate":"Running",
+                                "winner":"None"}
+
         """Default board constructor"""
         self.board: np.ndarray = np.array(
             [
@@ -174,10 +177,36 @@ class GameEngine:
         """Return the check status"""
         return self.check_status
 
+    def get_gamestate(self) -> str:
+        """Return the current gamestate"""
+        return self.gamestate
+
     def get_king_location(self, king_piece: str) -> str:
         """Return the kings location for the piece passed in"""
         row, col = np.where(self.board == king_piece)
         return f"{col[0]}{row[0]}"
+
+    def is_king_under_attack(self, color: str) -> bool:
+        """Check if a king is under attack"""
+        king_piece: str = ""
+        if color == "White":
+            king_piece = "wK"
+        else:
+            king_piece = "bK"
+
+        king_location = self.get_king_location(king_piece)
+        enemy_moves: list = []
+
+        if king_piece == "wK":
+            enemy_moves = self.get_black_moves()
+        else:
+            enemy_moves = self.get_white_moves()
+
+        for move in enemy_moves:
+            if king_location in move:
+                return True
+        return False
+
 
     def is_in_bounds(self, new_x: int, new_y: int) -> bool:
         """Check if a set of cords is in-bounds"""
@@ -503,6 +532,7 @@ class GameEngine:
             If so -
                 Update self.gamestate to "Stalemate"
         """
+        """----------------(1) Check if a player is in check----------------"""
         if self.player_turn == "white":
             white_king_location = self.get_king_location("wK")
             results = [moves for moves in self.black_moves if white_king_location in moves]
@@ -533,6 +563,21 @@ class GameEngine:
                     self.move_log_fen[-1] = latest_move + "+"
             else:
                 self.check_status = {}
+
+        """----------(2) Check if the gamestate is checkmate or stalemate-----------"""
+
+        if self.is_king_under_attack("Black") and not len(self.get_black_moves()):
+            self.gamestate['gamestate'] = "Checkmate"
+            self.gamestate['winner'] = "White"
+        elif not self.is_king_under_attack("Black") and not len(self.get_black_moves()):
+            self.gamestate['gamestate'] = "Stalemate"
+            self.gamestate['winner'] = "None"
+        elif self.is_king_under_attack("White") and not len(self.get_white_moves()):
+            self.gamestate['gamestate'] = "Checkmate"
+            self.gamestate['winner'] = "Black"
+        elif not self.is_king_under_attack("White") and not len(self.get_white_moves()):
+            self.gamestate['gamestate'] = "Stalemate"
+            self.gamestate['winner'] = "None"
 
     def piece_movemovents(self) -> dict:
         """Piece movements helper function"""
