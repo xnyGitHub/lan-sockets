@@ -54,7 +54,6 @@ class Player:
             print("Disconnecting")
             sys.exit(0)
 
-
     def initialise_pygame(self) -> None:
         """Initialise the MVC model for pygame and run it"""
         self.event_manager = EventManager()
@@ -101,7 +100,7 @@ class Player:
             gamestate = data["payload"]["gamestate"]
             captured = data["payload"]["captured"]
             check_status = data["payload"]["check_status"]
-            self.event_manager.post(UpdateEvent(board, move, log, captured,gamestate))
+            self.event_manager.post(UpdateEvent(board, move, log, captured, gamestate))
             self.event_manager.post(ViewUpdate(check_status))
 
         elif "message" in data.values():

@@ -107,7 +107,7 @@ class View:
         """Display the winner"""
 
         state = self.gamemodel.get_gamestate()
-        gamestate = state['gamestate']
+        gamestate = state["gamestate"]
         if gamestate == "Running":
             return
 
@@ -115,7 +115,7 @@ class View:
         text = None
 
         if gamestate == "Checkmate":
-            winner = state['winner']
+            winner = state["winner"]
             text = font.render(f"{winner} wins!", True, pygame.Color("white"), pygame.SRCALPHA)
         else:
             text = font.render(gamestate, True, pygame.Color("white"), pygame.SRCALPHA)
@@ -128,24 +128,24 @@ class View:
         pygame.Rect(x,y,pixel-across,pixels-down)
         """
         # Draw divider between game and move-log
-        pygame.draw.rect(self.screen, (255,255,255), pygame.Rect(512, 0, 5 ,612))
+        pygame.draw.rect(self.screen, (255, 255, 255), pygame.Rect(512, 0, 5, 612))
 
         # Top-player-related
         # Draw left border
-        pygame.draw.rect(self.screen, (255,255,255), pygame.Rect(0, 0, 5, 50))
+        pygame.draw.rect(self.screen, (255, 255, 255), pygame.Rect(0, 0, 5, 50))
         # Draw bottom border
-        pygame.draw.rect(self.screen, (255,255,255), pygame.Rect(0, 45, 512, 5))
+        pygame.draw.rect(self.screen, (255, 255, 255), pygame.Rect(0, 45, 512, 5))
 
         # Bot-player-related
         # Draw left border
-        pygame.draw.rect(self.screen, (255,255,255), pygame.Rect(0, 562, 5, 50))
+        pygame.draw.rect(self.screen, (255, 255, 255), pygame.Rect(0, 562, 5, 50))
         # Draw top border
-        pygame.draw.rect(self.screen, (255,255,255), pygame.Rect(0, 562, 512, 5))
+        pygame.draw.rect(self.screen, (255, 255, 255), pygame.Rect(0, 562, 512, 5))
 
         # Draw right border
-        pygame.draw.rect(self.screen, (255,255,255), pygame.Rect(763, 0, 5, 612))
+        pygame.draw.rect(self.screen, (255, 255, 255), pygame.Rect(763, 0, 5, 612))
         # Draw bottom border
-        pygame.draw.rect(self.screen, (255,255,255), pygame.Rect(0, 607, 763, 5))
+        pygame.draw.rect(self.screen, (255, 255, 255), pygame.Rect(0, 607, 763, 5))
 
     def draw_board(self) -> None:
         """Render the board"""

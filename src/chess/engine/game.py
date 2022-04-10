@@ -12,8 +12,7 @@ class GameEngine:
         self.ev_manager: EventManager = ev_manager
         ev_manager.register_listener(self)
         self.running: bool = False
-        self.gamestate: dict = {"gamestate":"Running",
-                                "winner":"None"}
+        self.gamestate: dict = {"gamestate": "Running", "winner": "None"}
         self.moves: list = []
         self.move_log: list = []
         self.usernames: dict = {}

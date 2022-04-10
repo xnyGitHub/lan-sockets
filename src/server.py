@@ -58,11 +58,13 @@ if __name__ == "__main__":
     print("-----------------------------")
     print("Starting server...")
     new_server = Socket(HOST, PORT)
-    print(f"""-----------------------------
+    print(
+        f"""-----------------------------
 The server is now running on;
 HOST: {HOST}
 PORT: {PORT}
 -----------------------------
 Hit CTRL+C to shutdown server
------------------------------""")
+-----------------------------"""
+    )
     new_server.run()
