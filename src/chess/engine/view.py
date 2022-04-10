@@ -88,7 +88,7 @@ class View:
 
         if not self.initialised:
             return
-        self.screen.fill((38, 37, 33))
+        self.screen.fill((0, 0, 0))
         self.draw_board()
         self.draw_move_log()
         self.draw_file_and_rank()
@@ -163,6 +163,7 @@ class View:
         self.screen.blit(txt_surface, (672, 5))
 
         seperator = font.render("|", True, pygame.Color("white"), pygame.SRCALPHA)
+        pygame.draw.rect(self.screen, (255,255,255), pygame.Rect(512, 0, 5 ,612))
         for count, text in enumerate(self.gamemodel.move_log):
             txt_surface = font.render(text, True, pygame.Color("white"), pygame.SRCALPHA)
             self.screen.blit(txt_surface, (position[count % 2], 20 + (height * (math.floor(count / 2)))))
@@ -186,6 +187,9 @@ class View:
 
     def draw_username_and_captured_pieces(self) -> None:
         """Draw the username and captured pieces"""
+        
+        pygame.draw.rect(self.screen, (255,255,255), pygame.Rect(0, 45, 512, 5))
+        pygame.draw.rect(self.screen, (255,255,255), pygame.Rect(0, 562, 512, 5))
         font = pygame.font.Font("freesansbold.ttf", 14)
 
         player_usernames = self.gamemodel.get_players()
