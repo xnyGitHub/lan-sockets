@@ -105,24 +105,22 @@ class View:
 
     def draw_winner(self) -> None:
         """Display the winner"""
+
         state = self.gamemodel.get_gamestate()
         gamestate = state['gamestate']
-        winner = state['winner']
-
         if gamestate == "Running":
             return
 
-        font = pygame.font.Font("freesansbold.ttf", 14)
-        height = font.get_height()
-        gamestate_render = font.render(gamestate, True, pygame.Color("white"), pygame.SRCALPHA)
-        winner_render = font.render(winner, True, pygame.Color("white"), pygame.SRCALPHA)
-
+        font = pygame.font.Font("freesansbold.ttf", 20)
+        text = None
 
         if gamestate == "Checkmate":
-            self.screen.blit(gamestate_render, (613, 567))
-            self.screen.blit(winner_render, (613, 567+height))
+            winner = state['winner']
+            text = font.render(f"{winner} wins!", True, pygame.Color("white"), pygame.SRCALPHA)
         else:
-            self.screen.blit(gamestate_render, (613, 567))
+            text = font.render(gamestate, True, pygame.Color("white"), pygame.SRCALPHA)
+
+        self.screen.blit(text, (583, 572))
 
     def draw_border(self) -> None:
         """
