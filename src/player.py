@@ -21,10 +21,10 @@ print = flush_print_default(print)
 class Player:
     """Player class"""
 
-    def __init__(self, host: str, port: int, username: str) -> None:
+    def __init__(self, host: str, port: int) -> None:
         # Connect to socket
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.connect(host, port, username)
+        self.connect(host, port)
         self.exit: bool = False
 
         # Pygame related
@@ -34,22 +34,26 @@ class Player:
         self.controller: Controller
         self.graphics: View
 
-    def connect(self, host: str, port: int, username: str) -> None:
+    def connect(self, host: str, port: int) -> None:
         """Connect to socket"""
         try:
             self.socket.connect((host, port))
-            message = json.dumps({"action": "username", "payload": username})
+
+            user_input = input("Please enter your username: ")
+            message = json.dumps({"action": "username", "payload": user_input})
             self.send(message)
 
             data = self.socket.recv(1024)
             if not data:
                 sys.exit(0)
-            response = json.loads(data)["payload"]
-            print(response)
 
         except ConnectionRefusedError:
             print("Could not connect")
             sys.exit(0)
+        except KeyboardInterrupt:
+            print("Disconnecting")
+            sys.exit(0)
+
 
     def initialise_pygame(self) -> None:
         """Initialise the MVC model for pygame and run it"""
@@ -294,7 +298,7 @@ if __name__ == "__main__":
     if sys.platform == "win32":
         HOST = "192.168.0.13"
 
-    user_input = input("Please enter your username: ")
+    HOST = input("Enter the server IP: ")
 
-    player = Player(HOST, PORT, user_input)
+    player = Player(HOST, PORT)
     player.start()
