@@ -33,13 +33,8 @@ class View:
     GREEN = (119, 149, 86)  # Off Green colour
     WHITE = (235, 235, 208)  # Off White Color
 
-    IMAGE_LOCATION = (10, 10)
-
-    TOP_USERNAME_LOCATION = (50, 5)
-    BOT_USERNAME_LOCATION = (50, 567)
-
-    TOP_IMAGE_LOCATION = (5, 5)
-    BOT_IMAGE_LOCATION = (5, 567)
+    TOP_USERNAME_LOCATION = (10, 1)
+    BOT_USERNAME_LOCATION = (10, 567)
 
     SOUNDS: dict = {}
     IMAGES: dict = {}
@@ -93,6 +88,7 @@ class View:
         self.draw_move_log()
         self.draw_file_and_rank()
         self.draw_username_and_captured_pieces()
+        self.draw_border()
         self.draw_winner()
 
         if self.sound_played is not True:
@@ -127,6 +123,31 @@ class View:
             self.screen.blit(winner_render, (613, 567+height))
         else:
             self.screen.blit(gamestate_render, (613, 567))
+
+    def draw_border(self) -> None:
+        """
+        Draw borders around elements
+        pygame.Rect(x,y,pixel-across,pixels-down)
+        """
+        # Draw divider between game and move-log
+        pygame.draw.rect(self.screen, (255,255,255), pygame.Rect(512, 0, 5 ,612))
+
+        # Top-player-related
+        # Draw left border
+        pygame.draw.rect(self.screen, (255,255,255), pygame.Rect(0, 0, 5, 50))
+        # Draw bottom border
+        pygame.draw.rect(self.screen, (255,255,255), pygame.Rect(0, 45, 512, 5))
+
+        # Bot-player-related
+        # Draw left border
+        pygame.draw.rect(self.screen, (255,255,255), pygame.Rect(0, 562, 5, 50))
+        # Draw top border
+        pygame.draw.rect(self.screen, (255,255,255), pygame.Rect(0, 562, 512, 5))
+
+        # Draw right border
+        pygame.draw.rect(self.screen, (255,255,255), pygame.Rect(763, 0, 5, 612))
+        # Draw bottom border
+        pygame.draw.rect(self.screen, (255,255,255), pygame.Rect(0, 607, 763, 5))
 
     def draw_board(self) -> None:
         """Render the board"""
@@ -163,7 +184,6 @@ class View:
         self.screen.blit(txt_surface, (672, 5))
 
         seperator = font.render("|", True, pygame.Color("white"), pygame.SRCALPHA)
-        pygame.draw.rect(self.screen, (255,255,255), pygame.Rect(512, 0, 5 ,612))
         for count, text in enumerate(self.gamemodel.move_log):
             txt_surface = font.render(text, True, pygame.Color("white"), pygame.SRCALPHA)
             self.screen.blit(txt_surface, (position[count % 2], 20 + (height * (math.floor(count / 2)))))
@@ -187,41 +207,25 @@ class View:
 
     def draw_username_and_captured_pieces(self) -> None:
         """Draw the username and captured pieces"""
-        
-        pygame.draw.rect(self.screen, (255,255,255), pygame.Rect(0, 45, 512, 5))
-        pygame.draw.rect(self.screen, (255,255,255), pygame.Rect(0, 562, 512, 5))
+
         font = pygame.font.Font("freesansbold.ttf", 14)
-
         player_usernames = self.gamemodel.get_players()
-        white: str = player_usernames["white"]
-        black: str = player_usernames["black"]
-
+        white: str = player_usernames["white"].upper()
+        black: str = player_usernames["black"].upper()
         white_text = font.render(white, True, View.WHITE, pygame.SRCALPHA)
         black_text = font.render(black, True, View.WHITE, pygame.SRCALPHA)
-
-        black_king = View.IMAGES["bK"]
-        black_king = pygame.transform.scale(black_king, (40, 40))
-        white_king = View.IMAGES["wK"]
-        white_king = pygame.transform.scale(white_king, (40, 40))
-
-        pygame.draw.rect(self.screen, View.WHITE, pygame.Rect(5, 5, 40, 40))
-        pygame.draw.rect(self.screen, View.WHITE, pygame.Rect(5, 567, 40, 40))
 
         if self.gamemodel.color == "black":
             self.screen.blit(white_text, View.TOP_USERNAME_LOCATION)
             self.screen.blit(black_text, View.BOT_USERNAME_LOCATION)
-            self.screen.blit(white_king, View.TOP_IMAGE_LOCATION)
-            self.screen.blit(black_king, View.BOT_IMAGE_LOCATION)
         else:
             self.screen.blit(white_text, View.BOT_USERNAME_LOCATION)
             self.screen.blit(black_text, View.TOP_USERNAME_LOCATION)
-            self.screen.blit(black_king, View.TOP_IMAGE_LOCATION)
-            self.screen.blit(white_king, View.BOT_IMAGE_LOCATION)
 
         if self.gamemodel.captured_pieces.get("white"):
             white_pieces = self.gamemodel.captured_pieces["white"]
             last_white_piece: str = ""
-            gap = 0
+            gap = -1
             for count, piece in enumerate(white_pieces):
                 if piece != last_white_piece:
                     last_white_piece = piece
@@ -229,14 +233,14 @@ class View:
                 image = View.IMAGES[piece]
                 image = pygame.transform.scale(image, (30, 30))
                 if self.gamemodel.color == "black":
-                    self.screen.blit(image, (25 + (gap * 20) + count * 5, 20))
+                    self.screen.blit(image, ((gap * 20) + count * 5, 15))
                 else:
-                    self.screen.blit(image, (25 + (gap * 20) + count * 5, 582))
+                    self.screen.blit(image, ((gap * 20) + count * 5, 577))
 
         if self.gamemodel.captured_pieces.get("black"):
             black_pieces = self.gamemodel.captured_pieces["black"]
             last_black_piece: str = ""
-            gap = 0
+            gap = -1
             for count, piece in enumerate(black_pieces):
                 if piece != last_black_piece:
                     last_black_piece = piece
@@ -244,9 +248,9 @@ class View:
                 image = View.OUTLINED_IMAGES[piece]
                 image = pygame.transform.scale(image, (30, 30))
                 if self.gamemodel.color == "black":
-                    self.screen.blit(image, (25 + (gap * 20) + count * 5, 582))
+                    self.screen.blit(image, ((gap * 20) + count * 5, 577))
                 else:
-                    self.screen.blit(image, (25 + (gap * 20) + count * 5, 20))
+                    self.screen.blit(image, ((gap * 20) + count * 5, 15))
 
     def highlight_square(self) -> None:
         """Highlight the square that a user clicks on, also show possible moves if its their piece"""
