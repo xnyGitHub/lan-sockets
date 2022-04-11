@@ -502,9 +502,27 @@ class GameEngine:
         if queen_side:
             self.black_moves.append("40:60:70:50:C")
 
-    def check_en_passant():
+    def check_en_passant(self):
         """Function to check for en_passant"""
-        pass
+        latest_move =  self.move_log[-1]
+        start_cords, end_cords, piece_moved, piece_captured, movetype = latest_move.split(":")
+
+        color, piece = piece_moved
+        if piece != "P" or movetype == "C":
+            return
+
+        enemy_move_array = self.white_moves if color == "b" else self.black_moves
+        direction = -1 if color == "w" else 1
+        start_col, start_row = [int(x) for x in start_cords]
+        end_col, end_row = [int(x) for x in end_cords]
+
+
+        if start_col == start_cords and abs(start_row-end_row) == 2:
+            if self.board[end_row][end_col-1][1] == "P":
+                enemy_move_array.append(f"{end_col-1}{end_row}:{start_col}{start_row + direction}:E")
+
+            if self.board[end_row][end_col+1][1] == "P":
+                enemy_move_array.append(f"{end_col-1}{end_row}:{start_col}{start_row + direction}:E")
 
     def generate_fen_nation_move_log(self) -> None:
         """Convert move_log into long algebraic notation"""
