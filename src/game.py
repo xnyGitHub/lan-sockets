@@ -263,6 +263,8 @@ class GameEngine:
         self.check_castle_rights_for_white()
         self.check_castle_rights_for_black()
 
+        self.check_en_passant()
+
         self.generate_fen_nation_move_log()
         self.check_gamestate()
 
@@ -499,6 +501,10 @@ class GameEngine:
             self.black_moves.append("40:20:00:30:C")
         if queen_side:
             self.black_moves.append("40:60:70:50:C")
+
+    def check_en_passant():
+        """Function to check for en_passant"""
+        pass
 
     def generate_fen_nation_move_log(self) -> None:
         """Convert move_log into long algebraic notation"""
