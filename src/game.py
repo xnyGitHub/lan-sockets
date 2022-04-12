@@ -508,7 +508,7 @@ class GameEngine:
         start_cords, end_cords, piece_moved, piece_captured, movetype = latest_move.split(":")
 
         color, piece = piece_moved
-        if piece != "P" or movetype == "C":
+        if piece != "P" or movetype == "T":
             return
 
         enemy_move_array = self.white_moves if color == "b" else self.black_moves
@@ -516,8 +516,7 @@ class GameEngine:
         start_col, start_row = [int(x) for x in start_cords]
         end_col, end_row = [int(x) for x in end_cords]
 
-
-        if start_col == start_cords and abs(start_row-end_row) == 2:
+        if start_col == end_col and abs(start_row-end_row) == 2:
             if self.board[end_row][end_col-1][1] == "P":
                 enemy_move_array.append(f"{end_col-1}{end_row}:{start_col}{start_row + direction}:E")
 
