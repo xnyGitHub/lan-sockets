@@ -283,6 +283,9 @@ class View:
         elif "x" in latest_move:
             pygame.mixer.music.load(View.SOUNDS["Capture"])
             pygame.mixer.music.play()
+        elif "e.p" in latest_move:
+            pygame.mixer.music.load(View.SOUNDS["Capture"])
+            pygame.mixer.music.play()
         else:
             pygame.mixer.music.load(View.SOUNDS["Move"])
             pygame.mixer.music.play()

@@ -91,6 +91,34 @@ class GameEngine:
             move_data = f"{king_start}:{king_end}:{rook_start}:{rook_end}:{movetype}"
             self.move_log.append(move_data)
 
+        elif movetype == "E":
+
+            start_cords, end_cords, _ = move.split(":")
+            start_col, start_row = [int(x) for x in start_cords]
+            end_col, end_row = [int(x) for x in end_cords]
+
+            passant_row = 0
+            if end_row == 2:
+                passant_row = 3
+            if end_row == 5:
+                passant_row = 4
+
+            piece_moved = self.board[start_row][start_col]
+            piece_captured = self.board[passant_row][end_col]
+
+            self.board[end_row][end_col] = self.board[start_row][start_col]
+            self.board[start_row][start_col] = "--"
+            self.board[passant_row][[end_col]] = "--"
+
+            if player_invoked and piece_captured != "--":
+                if piece_captured[0] == "w":
+                    self.white_captured.append(piece_captured)
+                else:
+                    self.black_captured.append(piece_captured)
+
+            move_data = f"{start_cords}:{end_cords}:{passant_row}:{piece_moved}:{piece_captured}:{movetype}"
+            self.move_log.append(move_data)
+
         self.switch_turns()
 
     def undo_move(self, player_invoked: bool = False) -> None:
@@ -131,6 +159,22 @@ class GameEngine:
 
             self.board[rook_start_row][rook_start_col] = self.board[rook_end_row][rook_end_col]
             self.board[rook_end_row][rook_end_col] = "--"
+
+        elif movetype == "E":
+            start_cords, end_cords, passant_row, piece_moved, piece_captured, movetype = move.split(":")
+            start_col, start_row = [int(x) for x in start_cords]
+            end_col, end_row = [int(x) for x in end_cords]
+
+            self.board[start_row][start_col] = piece_moved
+            self.board[end_row][end_col] = "--"
+
+            self.board[int(passant_row)][end_col] = piece_captured
+
+            if player_invoked and piece_captured != "--":
+                if piece_captured[0] == "w":
+                    self.white_captured.remove(piece_captured)
+                else:
+                    self.black_captured.remove(piece_captured)
 
         # Remove move from move log
         self.move_log.pop()
@@ -236,7 +280,7 @@ class GameEngine:
             else:
                 fen_string = "0-0"
         elif move_type == "E":
-            fen_string = "En-passant"
+            fen_string = "e.p"
 
         return fen_string
 
@@ -287,6 +331,8 @@ class GameEngine:
                     self.get_pawn_moves(index, array, chess_square)
                 else:
                     self.get_non_pawn_moves(index, array, chess_square)
+
+        self.check_en_passant()
 
     def get_non_pawn_moves(self, index: Tuple[int, int], array: list, chess_square: str) -> None:
         """Generate non-pawn moves here"""
@@ -499,6 +545,35 @@ class GameEngine:
             self.black_moves.append("40:20:00:30:C")
         if queen_side:
             self.black_moves.append("40:60:70:50:C")
+
+    def check_en_passant(self):
+        """Function to check for en_passant"""
+        if not self.move_log:
+            return
+        latest_move =  self.move_log[-1]
+        latest_move_type = latest_move[-1]
+
+        if latest_move_type != "N":
+            return
+
+        start_cords, end_cords, piece_moved, *_ = latest_move.split(":")
+        color, piece = piece_moved
+
+        if piece != "P":
+            return
+
+        enemy_move_array = self.white_moves if color == "b" else self.black_moves
+        direction = -1 if color == "w" else 1
+        start_col, start_row = [int(x) for x in start_cords]
+        end_col, end_row = [int(x) for x in end_cords]
+
+        if start_col == end_col and abs(start_row-end_row) == 2:
+            if self.is_in_bounds(end_row, (end_col-1)):
+                if self.board[end_row][end_col-1][1] == "P":
+                    enemy_move_array.append(f"{end_col-1}{end_row}:{start_col}{start_row + direction}:E")
+            if self.is_in_bounds(end_row, (end_col+1)):
+                if self.board[end_row][end_col+1][1] == "P":
+                    enemy_move_array.append(f"{end_col+1}{end_row}:{start_col}{start_row + direction}:E")
 
     def generate_fen_nation_move_log(self) -> None:
         """Convert move_log into long algebraic notation"""

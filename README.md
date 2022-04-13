@@ -4,7 +4,8 @@
 
 # Important features
 
-- En passant
+<!-- - En passant -->
+
 - Undo move
 
 # Potential features
