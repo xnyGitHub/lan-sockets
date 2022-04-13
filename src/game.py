@@ -280,7 +280,7 @@ class GameEngine:
             else:
                 fen_string = "0-0"
         elif move_type == "E":
-            fen_string = "En-passant"
+            fen_string = "e.p"
 
         return fen_string
 
